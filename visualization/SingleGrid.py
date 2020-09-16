@@ -64,6 +64,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         #TODO: Implement Communication Rate Limiting
 
+        #self.input_ser = serial.Serial('COM8') #Serial port for STM32
         self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
         self.input_ser.baudrate = 9600
 
@@ -79,24 +80,24 @@ class MainWindow(QtWidgets.QMainWindow):
         count = 0 # Indicates row
         temp_array = np.zeros((4,4))
         started = False
-        while self.input_ser.in_waiting:
-            inStr = self.input_ser.readline()
-            inputs = inStr.decode('utf-8').split(" ")
-            line_temp = [string for string in inputs if string != ""]
-            if(line_temp[0] == 'S'):
-                started = True
-                print("Started")
+        inStr = self.input_ser.readline()
+        inputs = inStr.decode('utf-8').split(";")
+        if(inputs[0][0] == '$'):
+            started = True
 
-            if(len(line_temp) > 1 and started):
-                line_int = [int(line_temp[i]) for i in range(len(line_temp)-1)]
-                print(line_int)
-                if(np.shape(line_int)[0] == 4):
-                    temp_array[count,:] = line_int
-                    count += 1
-
-                if(count > 3):
-                    #print(temp_array)
-                    return temp_array
+        if(len(inputs) > 1 and started):
+            for x in inputs:
+                row_split = x.split(",")
+                if(row_split[0].find("$") == -1 and len(row_split) > 1):
+                    row_int = [int(row_split[i]) for i in range(len(row_split))]
+                    if(np.shape(row_int)[0] == 4):
+                        temp_array[count,:] = row_int
+                        count += 1
+            if(count > 3):
+                #print(temp_array)
+                return temp_array
+        else:
+            return [[0]*4]*4
 
 
 if (__name__ == "__main__"):
