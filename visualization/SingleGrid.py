@@ -58,7 +58,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # QTimer kicks off every 0.2 seconds to update the visualization
         self.vizTimer = QtCore.QTimer()
-        self.vizTimer.setInterval(int(1000/5)) # Convert Hz to ms interval
+        self.vizTimer.setInterval(10) # Convert Hz to ms interval
         self.vizTimer.timeout.connect(self.timerCallback)
         self.vizTimer.start()
 
@@ -66,17 +66,26 @@ class MainWindow(QtWidgets.QMainWindow):
 
         #self.input_ser = serial.Serial('COM8') #Serial port for STM32
         self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
-        self.input_ser.baudrate = 9600
+        self.input_ser.baudrate = 115200
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
         array = self.parseSerial() # Turns serial data into 2D array of integer values
+        max_ind = np.argmax(array, axis=-1)
         for i in range(len(self.gridWidgets[0])): 
             for j in range(len(self.gridWidgets)):
-                self.gridWidgets[i][j].setColor(QtGui.QColor(int(array[i][j]), 100, 100)) # Assigns corresponding value to grid widget color
+                color = self.clamp(0, array[i][j], 255)
+                self.gridWidgets[i][j].setColor(QtGui.QColor(0, 0, color)) # Assigns corresponding value to grid widget color
+        '''
+        for i in range(len(self.gridWidgets[0])): 
+            for j in range(len(self.gridWidgets)):
+                self.gridWidgets[i][j].setColor(QtGui.QColor(0, 0, 0)) # Assigns corresponding value to grid widget color
+
+        self.gridWidgets[max_ind[0]][max_ind[1]].setColor(QtGui.QColor(0, 0, int(array[max_ind[0]][max_ind[1]]))) # Assigns corresponding value to grid widget color
+        '''
         
     def parseSerial(self): # Parses the input from serial port and converts to array
         if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
-            return [[0]*4]*4
+            return np.zeros((4,4))
         count = 0 # Indicates row
         temp_array = np.zeros((4,4))
         started = False
@@ -86,7 +95,9 @@ class MainWindow(QtWidgets.QMainWindow):
             started = True
 
         if(len(inputs) > 1 and started):
-            for x in inputs:
+            id = int(inputs[0][2:-1])
+            print(id)
+            for x in inputs[1:]:
                 row_split = x.split(",")
                 if(row_split[0].find("$") == -1 and len(row_split) > 1):
                     row_int = [int(row_split[i]) for i in range(len(row_split))]
@@ -94,10 +105,13 @@ class MainWindow(QtWidgets.QMainWindow):
                         temp_array[count,:] = row_int
                         count += 1
             if(count > 3):
-                #print(temp_array)
+                # print(temp_array)
                 return temp_array
         else:
-            return [[0]*4]*4
+            return np.zeros((4,4))
+
+    def clamp(self, minimum, x, maximum):
+        return max(minimum, min(x, maximum))
 
 
 if (__name__ == "__main__"):
