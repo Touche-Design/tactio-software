@@ -3,8 +3,8 @@ from PyQt5 import QtWidgets, QtCore, Qt, QtGui
 import sys  # We need sys so that we can pass argv to QApplication
 import os
 import numpy as np
-
 import SingleGrid
+import serial
 
 class MultiSensorVis(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -49,6 +49,16 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.is_recording = False
         self.recording = np.zeros((1,4,4))
 
+        # QTimer kicks off every 0.1 seconds to update the visualization
+        self.vizTimer = QtCore.QTimer()
+        self.vizTimer.setInterval(10) # Convert Hz to ms interval
+        self.vizTimer.timeout.connect(self.timerCallback)
+        self.vizTimer.start()
+
+        #self.input_ser = serial.Serial('COM8') #Serial port for STM32
+        self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
+        self.input_ser.baudrate = 9600
+
         self.show()
 
     #start/stop recording function
@@ -79,6 +89,39 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                     np.savetxt(file, self.recording[x], delimiter=',', fmt='%d')
                     file.write('\n')
                 file.close()
+
+    def timerCallback(self): # Kicks off when QTimer has a timeout event
+        array = self.parseSerial() # Turns serial data into 2D array of integer values
+
+        # max_ind = np.argmax(array, axis=-1)
+        self.sensor1.setColors(array)
+
+    def parseSerial(self): # Parses the input from serial port and converts to array
+        if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
+            return np.zeros((4,4))
+        count = 0 # Indicates row
+        temp_array = np.zeros((4,4))
+        started = False
+        inStr = self.input_ser.readline()
+        inputs = inStr.decode('utf-8').split(";")
+        if(inputs[0][0] == '$'):
+            started = True
+
+        if(len(inputs) > 1 and started):
+            id = int(inputs[0][1:])
+            print(id)
+            for x in inputs[1:]:
+                row_split = x.split(",")
+                if(row_split[0].find("$") == -1 and len(row_split) > 1):
+                    row_int = [int(row_split[i]) for i in range(len(row_split))]
+                    if(np.shape(row_int)[0] == 4):
+                        temp_array[count,:] = row_int
+                        count += 1
+            if(count > 3):
+                # print(temp_array)
+                return temp_array
+        else:
+            return np.zeros((4,4))
 
 
     # Add Keyboard Shortcuts
