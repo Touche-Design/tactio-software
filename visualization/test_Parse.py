@@ -31,9 +31,9 @@ def parseSerial():
     else:
         return np.zeros((4,4))
 
-
-input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
-input_ser.baudrate = 115200
+input_ser = serial.Serial('COM3') #Serial port for STM32
+#input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
+input_ser.baudrate = 9600
 while True:
     parseSerial()
     #time.sleep(0.1)

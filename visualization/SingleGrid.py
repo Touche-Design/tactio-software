@@ -84,7 +84,6 @@ class SensorGrid(QtWidgets.QWidget):
 
         self.gridWidgets[max_ind[0]][max_ind[1]].setColor(QtGui.QColor(0, 0, int(array[max_ind[0]][max_ind[1]]))) # Assigns corresponding value to grid widget color
         '''
-        
     def parseSerial(self): # Parses the input from serial port and converts to array
         if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
             return np.zeros((4,4))
