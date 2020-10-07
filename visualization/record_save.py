@@ -52,6 +52,28 @@ class MainWindow(QtWidgets.QMainWindow):
                 hboxes[i].addWidget(self.gridWidgets[i][j])
                 hboxes[i].addSpacing(10) #Spacing between columns
             vbox.addItem(hboxes[i]) #Add each row to the VBoxLayout
+
+        #adding buttons for recording and saving
+        self.rec_btn = QtGui.QPushButton("Rec", self)
+        self.rec_btn.setStyleSheet("min-height: 50px;"
+                                   "max-height: 50px;"
+                                   "min-width: 50px;"
+                                   "max-width: 50px;"
+                                   "background-color: gray;"
+                                   "color: red;"
+                                   "border-radius: 25px")
+        self.rec_btn.clicked.connect(self.record)
+        #self.save_btn = QtGui.QPushButton("Save to File", self)
+        #self.save_btn.setStyleSheet("min-width: 80px;"
+        #                            "max-width: 80px")
+        #self.save_btn.clicked.connect(self.file_save)
+
+        #nesting for UI buttons
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addWidget(self.rec_btn)
+        #hbox.addSpacing(10)
+        #hbox.addWidget(self.save_btn)
+        vbox.addItem(hbox)
         mainWidget = QtWidgets.QWidget()
         mainWidget.setLayout(vbox) 
         self.setCentralWidget(mainWidget)
@@ -68,8 +90,16 @@ class MainWindow(QtWidgets.QMainWindow):
         #self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
         self.input_ser.baudrate = 9600
 
+        #initializing recording
+        self.is_recording = False
+        self.recording = np.zeros((1,4,4))
+
+
     def timerCallback(self): # Kicks off when QTimer has a timeout event
         array = self.parseSerial() # Turns serial data into 2D array of integer values
+        #print(array)
+        if self.is_recording:
+            self.recording = np.append(self.recording,np.expand_dims(array,axis=0),axis=0)
         max_ind = np.argmax(array, axis=-1)
         for i in range(len(self.gridWidgets[0])): 
             for j in range(len(self.gridWidgets)):
@@ -96,7 +126,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if(len(inputs) > 1 and started):
             id = int(inputs[0][1:])
-            print(id)
+            #print(id)
             for x in inputs[1:]:
                 row_split = x.split(",")
                 if(row_split[0].find("$") == -1 and len(row_split) > 1):
@@ -112,6 +142,53 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def clamp(self, minimum, x, maximum):
         return max(minimum, min(x, maximum))
+
+    #start/stop recording function
+    #clear array on restart
+    def record(self):
+        self.is_recording = not self.is_recording
+        if self.is_recording:
+            self.recording = np.zeros((1,4,4))
+            self.rec_btn.setStyleSheet("min-height: 50px;"
+                                       "max-height: 50px;"
+                                       "min-width: 50px;"
+                                       "max-width: 50px;"
+                                       "background-color: red;"
+                                       "color: black;"
+                                       "border-radius: 25px")
+        else:
+            self.rec_btn.setStyleSheet("min-height: 50px;"
+                                       "max-height: 50px;"
+                                       "min-width: 50px;"
+                                       "max-width: 50px;"
+                                       "background-color: gray;"
+                                       "color: red;"
+                                       "border-radius: 25px")
+            save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')[0]
+            if save_name != '':
+                file = open(save_name, 'w')
+                for x in np.arange(1,self.recording.shape[0]):
+                    np.savetxt(file, self.recording[x], delimiter=',', fmt='%d')
+                    file.write('\n')
+                file.close()
+
+    #saving files function
+    #def file_save(self):
+    #    if self.recording.ndim > 2:
+    #        name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')
+    #        file = open(name[0], 'w')
+    #        for x in np.arange(1,self.recording.shape[0]):
+    #            np.savetxt(file, self.recording[x], delimiter=',', fmt='%d')
+    #            file.write('\n')
+    #        file.close()
+    #    else:
+    #        error_window = QtWidgets.QMessageBox()
+    #        error_window.setIcon(QtWidgets.QMessageBox.Critical)
+    #        error_window.setText("Recording is Empty!")
+    #        error_window.setWindowTitle("Error")
+    #        error_window.exec_()
+
+        
 
 
 if (__name__ == "__main__"):
