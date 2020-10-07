@@ -9,13 +9,16 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(QtWidgets.QMainWindow, self).__init__(*args, **kwargs)
         self.setWindowTitle("Tactio")
-        self.position_data = et.parse('2sensor.xml').getroot()
+        position_data = et.parse('2sensor.xml').getroot()
         widget = QtGui.QWidget()
         self.sensor1 = SingleGrid.SensorGrid()
         self.sensor1.setParent(widget)
         self.setCentralWidget(widget)
+        print(int(position_data[0].find('id').text))
         self.sensor1.resize(100,100)
-        self.sensor1.move(50,50)
+        sensor1x = int(position_data[0].find('x_pos').text)
+        sensor1y = int(position_data[0].find('y_pos').text)
+        self.sensor1.move(sensor1x, sensor1y)
         self.show()
 
     def keyPressEvent(self, event):
