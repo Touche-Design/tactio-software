@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<data>
+    <sensor name="Zero">
+        <id>12</id>
+        <x_pos>50</x_pos>
+        <y_pos>50</y_pos>
+    </sensor>
+
+    <sensor name="One">
+        <id>13</id>
+        <x_pos>100</x_pos>
+        <y_pos>200</y_pos>
+    </sensor>
+</data>

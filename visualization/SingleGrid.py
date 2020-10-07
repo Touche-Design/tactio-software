@@ -30,10 +30,9 @@ class GridPoint(QtWidgets.QWidget):
 This widget is the main window of the visualization. It has a grid of 4 x 4 grid points which change color based on input
 '''
 
-class MainWindow(QtWidgets.QMainWindow):
+class SensorGrid(QtWidgets.QWidget):
     def __init__(self,  *args, **kwargs):
-        super(QtWidgets.QMainWindow, self).__init__(*args, **kwargs)
-        self.setWindowTitle("Tactio")
+        super(QtWidgets.QWidget, self).__init__(*args, **kwargs)
         # Grid Widgets stored in a member variable array
         self.gridWidgets = [[GridPoint(), GridPoint(), GridPoint(), GridPoint()],
         [GridPoint(), GridPoint(), GridPoint(), GridPoint()],
@@ -52,9 +51,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 hboxes[i].addWidget(self.gridWidgets[i][j])
                 hboxes[i].addSpacing(10) #Spacing between columns
             vbox.addItem(hboxes[i]) #Add each row to the VBoxLayout
-        mainWidget = QtWidgets.QWidget()
-        mainWidget.setLayout(vbox) 
-        self.setCentralWidget(mainWidget)
 
         # QTimer kicks off every 0.2 seconds to update the visualization
         self.vizTimer = QtCore.QTimer()
@@ -67,14 +63,20 @@ class MainWindow(QtWidgets.QMainWindow):
         #self.input_ser = serial.Serial('COM8') #Serial port for STM32
         self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
         self.input_ser.baudrate = 115200
+        self.setLayout(vbox)
+
+    def setGridColors(self, gridWidget, color):
+        clip_color = self.clamp(0, color, 255)
+        gridWidget.setColor(QtGui.QColor(0, 0, clip_color)) # Assigns corresponding value to grid widget color
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
         array = self.parseSerial() # Turns serial data into 2D array of integer values
-        max_ind = np.argmax(array, axis=-1)
+
+        # max_ind = np.argmax(array, axis=-1)
         for i in range(len(self.gridWidgets[0])): 
             for j in range(len(self.gridWidgets)):
-                color = self.clamp(0, array[i][j], 255)
-                self.gridWidgets[i][j].setColor(QtGui.QColor(0, 0, color)) # Assigns corresponding value to grid widget color
+                self.setGridColors(self.gridWidgets[i][j], array[i][j])
+
         '''
         for i in range(len(self.gridWidgets[0])): 
             for j in range(len(self.gridWidgets)):
@@ -112,10 +114,3 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def clamp(self, minimum, x, maximum):
         return max(minimum, min(x, maximum))
-
-
-if (__name__ == "__main__"):
-    app = QtWidgets.QApplication(sys.argv)
-    w = MainWindow()
-    w.show()
-    sys.exit(app.exec_())
