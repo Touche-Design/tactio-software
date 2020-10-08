@@ -128,4 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Ignore Output Files
+*.txt
+*.json
+
 .vscode/*
