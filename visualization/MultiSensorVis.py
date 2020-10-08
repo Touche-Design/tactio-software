@@ -41,8 +41,21 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                                    "border-radius: 25px")
         self.rec_btn.clicked.connect(self.record)
 
+        self.fileLine = QtWidgets.QLineEdit()
+        self.fileLine.readOnly = True
+        self.fileLine.setMaximumWidth(500)
+
+        self.fileSelBtn = QtWidgets.QPushButton("...")
+        self.fileSelBtn.clicked.connect(self.fileSelCallback)
+        self.fileSelBtn.setMaximumWidth(50)
+
+
         #nesting for UI buttons
         buttonHbox = QtWidgets.QHBoxLayout()
+        buttonHbox.addWidget(self.fileLine)
+        #buttonHbox.addSpacing(10)
+        buttonHbox.addWidget(self.fileSelBtn)
+        #buttonHbox.addSpacing(10)
         buttonHbox.addWidget(self.rec_btn)
 
         vbox = QtWidgets.QVBoxLayout()
@@ -70,6 +83,10 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         self.show()
 
+    def fileSelCallback(self):
+        save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')[0]
+        self.fileLine.setText(save_name)
+
     #start/stop recording function
     #clear array on restart
     def record(self):
@@ -91,19 +108,15 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                                        "background-color: gray;"
                                        "color: red;"
                                        "border-radius: 25px")
-            save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')[0]
+            save_name = ""
+            if(self.fileLine.text == ''):
+                save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')[0]
+            else:
+                save_name = self.fileLine.text()
 
             if save_name != '':
                 with open(save_name, "w") as outfile:  
                     json.dump(self.recording, outfile, cls=NumpyArrayEncoder) 
-
-            '''
-                file = open(save_name, 'w')
-                for x in np.arange(1,self.recording.shape[0]):
-                    np.savetxt(file, self.recording[x], delimiter=',', fmt='%d')
-                    file.write('\n')
-                file.close()
-            '''
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
         array = self.parseSerial() # Turns serial data into 2D array of integer values
