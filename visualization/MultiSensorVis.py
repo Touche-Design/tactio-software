@@ -3,19 +3,27 @@ from PyQt5 import QtWidgets, QtCore, Qt, QtGui
 import sys  # We need sys so that we can pass argv to QApplication
 import os
 import numpy as np
-import SingleGrid
 import serial
+import json
+
+from NumpyArrayEncoder import NumpyArrayEncoder
+import SingleGrid
 
 class MultiSensorVis(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(QtWidgets.QMainWindow, self).__init__(*args, **kwargs)
         self.setWindowTitle("Tactio")
         position_data = et.parse('2sensor.xml').getroot()
+        self.sensorCount = len(position_data)
+        self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
+        print(self.sensorIDs)
+
+
         sensorAreaWidget = QtGui.QWidget()
         self.sensor1 = SingleGrid.SensorGrid()
         self.sensor1.setParent(sensorAreaWidget)
         sensorAreaWidget.setMinimumSize(800, 800)
-        print(int(position_data[0].find('id').text))
+        #print(int(position_data[0].find('id').text))
         self.sensor1.resize(100,100)
         sensor1x = int(position_data[0].find('x_pos').text)
         sensor1y = int(position_data[0].find('y_pos').text)
@@ -47,7 +55,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         #initializing recording
         self.is_recording = False
-        self.recording = np.zeros((1,4,4))
+        #self.recording = np.zeros((1,4,4))
+        self.recording = {id : np.zeros((1,4,4)) for id in self.sensorIDs} #dictionary holding previous recordings
 
         # QTimer kicks off every 0.1 seconds to update the visualization
         self.vizTimer = QtCore.QTimer()
@@ -66,7 +75,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def record(self):
         self.is_recording = not self.is_recording
         if self.is_recording:
-            self.recording = np.zeros((1,4,4))
+            self.recording = {id : np.zeros((1,4,4)) for id in self.sensorIDs} #dictionary holding previous recordings
             self.rec_btn.setStyleSheet("min-height: 50px;"
                                        "max-height: 50px;"
                                        "min-width: 50px;"
@@ -83,16 +92,25 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                                        "color: red;"
                                        "border-radius: 25px")
             save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')[0]
+
             if save_name != '':
+                with open(save_name, "w") as outfile:  
+                    json.dump(self.recording, outfile, cls=NumpyArrayEncoder) 
+
+            '''
                 file = open(save_name, 'w')
                 for x in np.arange(1,self.recording.shape[0]):
                     np.savetxt(file, self.recording[x], delimiter=',', fmt='%d')
                     file.write('\n')
                 file.close()
+            '''
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
         array = self.parseSerial() # Turns serial data into 2D array of integer values
-
+        out_dict = {id : array for id in self.sensorIDs}
+        if self.is_recording:
+            for id in out_dict.keys():
+                self.recording[id] = np.append(self.recording[id],np.expand_dims(out_dict[id],axis=0),axis=0)
         # max_ind = np.argmax(array, axis=-1)
         self.sensor1.setColors(array)
 

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <data>
     <sensor name="Zero">
-        <id>12</id>
+        <id>39</id>
         <x_pos>100</x_pos>
         <y_pos>50</y_pos>
     </sensor>
