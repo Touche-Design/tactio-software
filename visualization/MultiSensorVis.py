@@ -5,6 +5,7 @@ import os
 import numpy as np
 import serial
 import json
+import time
 
 from NumpyArrayEncoder import NumpyArrayEncoder
 import SingleGrid
@@ -18,18 +19,17 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
         print(self.sensorIDs)
 
-
         sensorAreaWidget = QtGui.QWidget()
-        self.sensor1 = SingleGrid.SensorGrid()
-        self.sensor1.setParent(sensorAreaWidget)
+        self.sensorWidgets = [SingleGrid.SensorGrid() for i in range(self.sensorCount)]
+        for i in range(self.sensorCount):
+            self.sensorWidgets[i].setParent(sensorAreaWidget)
+            self.sensorWidgets[i].resize(300,300)
+            sensorx = int(position_data[i].find('x_pos').text)
+            sensory = int(position_data[i].find('y_pos').text)
+            self.sensorWidgets[i].move(sensorx, sensory)
+
         sensorAreaWidget.setMinimumSize(800, 800)
         #print(int(position_data[0].find('id').text))
-        self.sensor1.resize(100,100)
-        sensor1x = int(position_data[0].find('x_pos').text)
-        sensor1y = int(position_data[0].find('y_pos').text)
-        self.sensor1.move(sensor1x, sensor1y)
-
-
         #adding buttons for recording and saving
         self.rec_btn = QtGui.QPushButton("Rec", self)
         self.rec_btn.setStyleSheet("min-height: 50px;"
@@ -81,11 +81,15 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
         self.input_ser.baudrate = 9600
 
+        self.display_on = True
+
         self.show()
 
     def fileSelCallback(self):
-        save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')[0]
+        self.display_on = False
+        save_name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', options=QtGui.QFileDialog.DontUseNativeDialog)[0]
         self.fileLine.setText(save_name)
+        self.display_on = True
 
     #start/stop recording function
     #clear array on restart
@@ -109,8 +113,9 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                                        "color: red;"
                                        "border-radius: 25px")
             save_name = ""
-            if(self.fileLine.text == ''):
-                save_name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')[0]
+            print(self.fileLine.text())
+            if(self.fileLine.text() == ''):
+                save_name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', options=QtGui.QFileDialog.DontUseNativeDialog)[0]
             else:
                 save_name = self.fileLine.text()
 
@@ -119,13 +124,14 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                     json.dump(self.recording, outfile, cls=NumpyArrayEncoder) 
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
-        array = self.parseSerial() # Turns serial data into 2D array of integer values
-        out_dict = {id : array for id in self.sensorIDs}
+        self.parseSerial()
+
+        # out_dict = {id : self.sensorWidgets[self.sensorIDs.index(id)].data for id in self.sensorIDs}
         if self.is_recording:
-            for id in out_dict.keys():
-                self.recording[id] = np.append(self.recording[id],np.expand_dims(out_dict[id],axis=0),axis=0)
+            for id in self.sensorIDs:
+                self.recording[id] = np.append(self.recording[id], \
+                    np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
         # max_ind = np.argmax(array, axis=-1)
-        self.sensor1.setColors(array)
 
     def parseSerial(self): # Parses the input from serial port and converts to array
         if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
@@ -134,6 +140,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         temp_array = np.zeros((4,4))
         started = False
         inStr = self.input_ser.readline()
+        print(inStr)
         inputs = inStr.decode('utf-8').split(";")
         if(inputs[0][0] == '$'):
             started = True
@@ -150,7 +157,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                         count += 1
             if(count > 3):
                 # print(temp_array)
-                return temp_array
+                self.sensorWidgets[self.sensorIDs.index(id)].setData(temp_array)
+                # return temp_array
         else:
             return np.zeros((4,4))
 

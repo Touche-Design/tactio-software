@@ -51,17 +51,25 @@ class SensorGrid(QtWidgets.QWidget):
                 hboxes[i].addSpacing(10) #Spacing between columns
             vbox.addItem(hboxes[i]) #Add each row to the VBoxLayout
 
-
-        #TODO: Implement Communication Rate Limiting
+        self.data = np.zeros((4,4))
 
         self.setLayout(vbox)
+
+    def setData(self, data, show = True):
+        self.data = data
+        if(show):
+            self.setColors(data)
+
+    def data2color(self,data):
+        return data
+
 
     def setColors(self, colors):
         for i in range(len(self.gridWidgets[0])): 
             for j in range(len(self.gridWidgets)):
-                self.setGridColors(self.gridWidgets[i][j], colors[i][j])
+                self.setGridColor(self.gridWidgets[i][j], colors[i][j])
 
-    def setGridColors(self, gridWidget, color):
+    def setGridColor(self, gridWidget, color):
         clip_color = self.clamp(0, color, 255)
         gridWidget.setColor(QtGui.QColor(0, 0, clip_color)) # Assigns corresponding value to grid widget color
 
