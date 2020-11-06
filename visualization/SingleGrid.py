@@ -60,9 +60,8 @@ class SensorGrid(QtWidgets.QWidget):
         if(show):
             self.setColors(data)
 
-    def data2color(self,data):
+    def data2color(self,data): # Here we can add some sort of scaling (linear or logarithmic)
         return data
-
 
     def setColors(self, colors):
         for i in range(len(self.gridWidgets[0])): 
@@ -76,3 +75,8 @@ class SensorGrid(QtWidgets.QWidget):
 
     def clamp(self, minimum, x, maximum):
         return max(minimum, min(x, maximum))
+
+    def contextMenuEvent(self, event):
+        contextMenu = QtWidgets.QMenu(self)
+        sendLEDact = contextMenu.addAction("Toggle LED")
+        action = contextMenu.exec_(self.mapToGlobal(event.pos()))
