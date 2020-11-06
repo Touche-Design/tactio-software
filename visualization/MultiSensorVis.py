@@ -9,6 +9,7 @@ import time
 
 from NumpyArrayEncoder import NumpyArrayEncoder
 import SingleGrid
+import ParseThread
 
 class MultiSensorVis(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -73,7 +74,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         # QTimer kicks off every 0.1 seconds to update the visualization
         self.vizTimer = QtCore.QTimer()
-        self.vizTimer.setInterval(10) # Convert Hz to ms interval
+        self.vizTimer.setInterval(50) # Convert Hz to ms interval
         self.vizTimer.timeout.connect(self.timerCallback)
         self.vizTimer.start()
 
@@ -84,6 +85,16 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.display_on = True
 
         self.show()
+
+        self.threadpool = QtCore.QThreadPool()
+        self.worker = ParseThread.Parser(self.input_ser) # Any other args, kwargs are passed to the run function
+        self.worker.signals.result.connect(self.parseResultCallback)
+        self.threadpool.start(self.worker) 
+
+
+    def parseResultCallback(self, parseResult):
+        self.sensorWidgets[self.sensorIDs.index(parseResult[0])].setData(parseResult[1])
+        #print(parseResult[1])
 
     def fileSelCallback(self):
         self.display_on = False
@@ -113,7 +124,6 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                                        "color: red;"
                                        "border-radius: 25px")
             save_name = ""
-            print(self.fileLine.text())
             if(self.fileLine.text() == ''):
                 save_name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', options=QtGui.QFileDialog.DontUseNativeDialog)[0]
             else:
@@ -124,7 +134,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                     json.dump(self.recording, outfile, cls=NumpyArrayEncoder) 
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
-        self.parseSerial()
+        #self.parseSerial()
 
         # out_dict = {id : self.sensorWidgets[self.sensorIDs.index(id)].data for id in self.sensorIDs}
         if self.is_recording:
@@ -140,14 +150,12 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         temp_array = np.zeros((4,4))
         started = False
         inStr = self.input_ser.readline()
-        print(inStr)
         inputs = inStr.decode('utf-8').split(";")
         if(inputs[0][0] == '$'):
             started = True
 
         if(len(inputs) > 1 and started):
             id = int(inputs[0][1:])
-            print(id)
             for x in inputs[1:]:
                 row_split = x.split(",")
                 if(row_split[0].find("$") == -1 and len(row_split) > 1):
@@ -156,17 +164,26 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                         temp_array[count,:] = row_int
                         count += 1
             if(count > 3):
-                # print(temp_array)
+                print(temp_array)
                 self.sensorWidgets[self.sensorIDs.index(id)].setData(temp_array)
                 # return temp_array
         else:
             return np.zeros((4,4))
 
-
     # Add Keyboard Shortcuts
     def keyPressEvent(self, event):
         if(event.key() == QtCore.Qt.Key_Escape): #Escape automatically closes
             self.close()
+    
+    def killParserThread(self):
+        self.worker.alive = False
+        while self.threadpool.activeThreadCount() > 0:
+            continue
+    
+    def closeEvent(self, event):
+        self.killParserThread()
+        event.accept()
+
 
 
 if (__name__ == "__main__"):
