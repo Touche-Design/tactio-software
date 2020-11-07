@@ -23,6 +23,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         sensorAreaWidget = QtGui.QWidget()
         self.sensorWidgets = [SingleGrid.SensorGrid() for i in range(self.sensorCount)]
         for i in range(self.sensorCount):
+            self.sensorWidgets[i].id = self.sensorIDs[i]
+            self.sensorWidgets[i].sendData.connect(self.sendMessageCallback)
             self.sensorWidgets[i].setParent(sensorAreaWidget)
             self.sensorWidgets[i].resize(300,300)
             sensorx = int(position_data[i].find('x_pos').text)
@@ -50,7 +52,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.fileSelBtn.clicked.connect(self.fileSelCallback)
         self.fileSelBtn.setMaximumWidth(50)
 
-
+        #self.getSensorListButton = QtWidgets.QPushButton("Sensor List")
         #nesting for UI buttons
         buttonHbox = QtWidgets.QHBoxLayout()
         buttonHbox.addWidget(self.fileLine)
@@ -64,7 +66,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         vbox.addItem(buttonHbox)
         mainWidget = QtWidgets.QWidget()
-        mainWidget.setLayout(vbox) 
+        mainWidget.setLayout(vbox)
         self.setCentralWidget(mainWidget)
 
         #initializing recording
@@ -88,9 +90,17 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         self.threadpool = QtCore.QThreadPool()
         self.worker = ParseThread.Parser(self.input_ser) # Any other args, kwargs are passed to the run function
-        self.worker.signals.result.connect(self.parseResultCallback)
+        self.worker.signals.gridData.connect(self.parseResultCallback)
+        self.worker.signals.sensorList.connect(self.sensorListCallback)
         self.threadpool.start(self.worker) 
 
+    def sendMessageCallback(self, sendData):
+        self.input_ser.write(int.to_bytes(sendData[0], 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(sendData[1], 1, byteorder='big'))
+        self.input_ser.flush()
+    
+    def sensorListCallback(self, sensorList):
+        print(sensorList)
 
     def parseResultCallback(self, parseResult):
         self.sensorWidgets[self.sensorIDs.index(parseResult[0])].setData(parseResult[1])
@@ -143,6 +153,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                     np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
         # max_ind = np.argmax(array, axis=-1)
 
+    '''
     def parseSerial(self): # Parses the input from serial port and converts to array
         if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
             return np.zeros((4,4))
@@ -169,6 +180,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                 # return temp_array
         else:
             return np.zeros((4,4))
+    '''
 
     # Add Keyboard Shortcuts
     def keyPressEvent(self, event):

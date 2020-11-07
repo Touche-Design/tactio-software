@@ -4,6 +4,8 @@ import serial
 import traceback
 import sys
 
+
+
 class WorkerSignals(QtCore.QObject):
     '''
     Defines the signals available from a running worker thread.
@@ -25,8 +27,8 @@ class WorkerSignals(QtCore.QObject):
     '''
     finished = QtCore.pyqtSignal()
     error = QtCore.pyqtSignal(tuple)
-    result = QtCore.pyqtSignal(tuple)
-    progress = QtCore.pyqtSignal(int)
+    gridData = QtCore.pyqtSignal(tuple)
+    sensorList = QtCore.pyqtSignal(list)
 
 
 class Parser(QtCore.QRunnable):
@@ -53,6 +55,7 @@ class Parser(QtCore.QRunnable):
 
 
     def parseSerial(self): # Parses the input from serial port and converts to array
+        '''
         if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
             return (0,np.zeros((4,4)))
         count = 0 # Indicates row
@@ -78,6 +81,36 @@ class Parser(QtCore.QRunnable):
                 return (id, temp_array)
         else:
             return (0,np.zeros((4,4)))
+        '''
+        if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
+            return 1, (0,np.zeros((4,4)))
+        else:
+            byte = None
+            # Wait until 0xFF is read
+            while(not byte == 255):
+                byte = int.from_bytes(self.input_ser.read(), byteorder='big')
+            # Read in command byte
+            byte = int.from_bytes(self.input_ser.read(), byteorder='big')
+            # 0x50 corresponds to all known addresses
+            if(byte == 0x50):
+                length = int.from_bytes(self.input_ser.read(), byteorder='big')
+                addrs = length * [None]
+                for i in range(length):
+                    addrs[i] = int.from_bytes(self.input_ser.read(), byteorder='big')
+                return addrs, 1
+            # 0b0100 corresponds to column data
+            elif(byte&0xF0 == 0b01000000):
+                valid = byte&0x0F
+                addr = int.from_bytes(self.input_ser.read(), byteorder='big')
+                data = np.zeros((4,4))
+                # For each column
+                for i in range(4):
+                    # For each row
+                    for j in range(4):
+                        data[j,i] = int.from_bytes(self.input_ser.read() + self.input_ser.read(), byteorder='big')
+                print(data)
+                return (addr, data), 0
+
     def printSerial(self):
         input = self.input_ser.readline()
         print(input)
@@ -88,13 +121,15 @@ class Parser(QtCore.QRunnable):
         '''
         Initialise the runner function with passed args, kwargs.
         '''
-        print(self.input_ser.inWaiting())
         while self.alive:
             if(self.input_ser.inWaiting()):
                 try:
-                    result = self.parseSerial()
+                    result, msg = self.parseSerial()
                 except:
                     traceback.print_exc()
                     exctype, value = sys.exc_info()[:2]
                 else:
-                    self.signals.result.emit(result)  # Return the result of the processing
+                    if(msg == 0) :
+                        self.signals.gridData.emit(result)  # Return the result of the processing
+                    elif(msg == 1):
+                        self.signals.sensorList.emit(result)
