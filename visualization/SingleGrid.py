@@ -82,15 +82,12 @@ class SensorGrid(QtWidgets.QWidget):
         contextMenu = QtWidgets.QMenu(self)
         onLEDAct = contextMenu.addAction("Turn LED On")
         offLEDAct = contextMenu.addAction("Turn LED Off")
-        flashLEDAct = contextMenu.addAction("Flash LED")
         calibrateAct = contextMenu.addAction("Calibrate Sensor")
 
         action = contextMenu.exec_(self.mapToGlobal(event.pos()))
         if(action == onLEDAct):
-            self.sendData.emit((self.id, 0b10000011))
+            self.sendData.emit((0b10000011, self.id))
         elif(action == offLEDAct):
-            self.sendData.emit((self.id, 0b10000010))
+            self.sendData.emit((0b10000010, self.id))
         elif(action == calibrateAct):
-            self.sendData.emit((self.id, 0b10001000))
-        elif(action == flashLEDAct):
-            self.sendData.emit((self.id, 0b10000100))
+            self.sendData.emit((0b10001000, self.id))

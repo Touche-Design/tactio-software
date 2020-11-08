@@ -81,7 +81,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.vizTimer.start()
 
         #self.input_ser = serial.Serial('COM8') #Serial port for STM32
-        self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
+        self.input_ser = serial.serial_for_url('spy:///dev/ttyACM0') #Serial port for STM32
         self.input_ser.baudrate = 9600
 
         self.display_on = True
