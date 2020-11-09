@@ -26,10 +26,11 @@ class GridPoint(QtWidgets.QWidget):
         self.setPalette(p)
 
 '''
-This widget is the main window of the visualization. It has a grid of 4 x 4 grid points which change color based on input
+This widget is the main component of the visualization. It has a grid of 4 x 4 grid points which change color based on input
 '''
 
 class SensorGrid(QtWidgets.QWidget):
+    sendData = QtCore.pyqtSignal((tuple))
     def __init__(self,  *args, **kwargs):
         super(QtWidgets.QWidget, self).__init__(*args, **kwargs)
         # Grid Widgets stored in a member variable array
@@ -52,6 +53,7 @@ class SensorGrid(QtWidgets.QWidget):
             vbox.addItem(hboxes[i]) #Add each row to the VBoxLayout
 
         self.data = np.zeros((4,4))
+        self.id = 0
 
         self.setLayout(vbox)
 
@@ -78,5 +80,14 @@ class SensorGrid(QtWidgets.QWidget):
 
     def contextMenuEvent(self, event):
         contextMenu = QtWidgets.QMenu(self)
-        sendLEDact = contextMenu.addAction("Toggle LED")
+        onLEDAct = contextMenu.addAction("Turn LED On")
+        offLEDAct = contextMenu.addAction("Turn LED Off")
+        calibrateAct = contextMenu.addAction("Calibrate Sensor")
+
         action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+        if(action == onLEDAct):
+            self.sendData.emit((0b10000011, self.id))
+        elif(action == offLEDAct):
+            self.sendData.emit((0b10000010, self.id))
+        elif(action == calibrateAct):
+            self.sendData.emit((0b10001000, self.id))

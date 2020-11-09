@@ -15,7 +15,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(QtWidgets.QMainWindow, self).__init__(*args, **kwargs)
         self.setWindowTitle("Tactio")
-        position_data = et.parse('2sensor.xml').getroot()
+        position_data = et.parse('1sensor.xml').getroot()
         self.sensorCount = len(position_data)
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
         print(self.sensorIDs)
@@ -23,8 +23,10 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         sensorAreaWidget = QtGui.QWidget()
         self.sensorWidgets = [SingleGrid.SensorGrid() for i in range(self.sensorCount)]
         for i in range(self.sensorCount):
+            self.sensorWidgets[i].id = self.sensorIDs[i]
+            self.sensorWidgets[i].sendData.connect(self.sendMessageCallback)
             self.sensorWidgets[i].setParent(sensorAreaWidget)
-            self.sensorWidgets[i].resize(300,300)
+            self.sensorWidgets[i].resize(100,100)
             sensorx = int(position_data[i].find('x_pos').text)
             sensory = int(position_data[i].find('y_pos').text)
             self.sensorWidgets[i].move(sensorx, sensory)
@@ -50,21 +52,28 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.fileSelBtn.clicked.connect(self.fileSelCallback)
         self.fileSelBtn.setMaximumWidth(50)
 
-
+        #self.getSensorListButton = QtWidgets.QPushButton("Sensor List")
         #nesting for UI buttons
-        buttonHbox = QtWidgets.QHBoxLayout()
-        buttonHbox.addWidget(self.fileLine)
-        #buttonHbox.addSpacing(10)
-        buttonHbox.addWidget(self.fileSelBtn)
-        #buttonHbox.addSpacing(10)
-        buttonHbox.addWidget(self.rec_btn)
+        recordButtonHbox = QtWidgets.QHBoxLayout()
+        recordButtonHbox.addWidget(self.fileLine)
+        #recordButtonHbox.addSpacing(10)
+        recordButtonHbox.addWidget(self.fileSelBtn)
+        #recordButtonHbox.addSpacing(10)
+        recordButtonHbox.addWidget(self.rec_btn)
+
+        flashLED = QtWidgets.QPushButton("Flash LEDs")
+        flashLED.clicked.connect(self.flashSequenceLEDs)
+        cmdButtonHbox = QtWidgets.QHBoxLayout()
+        cmdButtonHbox.addWidget(flashLED)
+
 
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(sensorAreaWidget)
 
-        vbox.addItem(buttonHbox)
+        vbox.addItem(recordButtonHbox)
+        vbox.addItem(cmdButtonHbox)
         mainWidget = QtWidgets.QWidget()
-        mainWidget.setLayout(vbox) 
+        mainWidget.setLayout(vbox)
         self.setCentralWidget(mainWidget)
 
         #initializing recording
@@ -88,9 +97,27 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         self.threadpool = QtCore.QThreadPool()
         self.worker = ParseThread.Parser(self.input_ser) # Any other args, kwargs are passed to the run function
-        self.worker.signals.result.connect(self.parseResultCallback)
+        self.worker.signals.gridData.connect(self.parseResultCallback)
+        self.worker.signals.sensorList.connect(self.sensorListCallback)
         self.threadpool.start(self.worker) 
 
+    def flashSequenceLEDs(self):
+        for i in self.sensorIDs:
+            self.sendMessageCallback(((0b10000011, i)))
+            time.sleep(0.2)
+        time.sleep(0.5)
+        for i in self.sensorIDs:
+            self.sendMessageCallback(((0b10000010, i)))
+            time.sleep(0.2)
+
+
+    def sendMessageCallback(self, sendData):
+        self.input_ser.write(int.to_bytes(sendData[0], 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(sendData[1], 1, byteorder='big'))
+        self.input_ser.flush()
+    
+    def sensorListCallback(self, sensorList):
+        print(sensorList)
 
     def parseResultCallback(self, parseResult):
         self.sensorWidgets[self.sensorIDs.index(parseResult[0])].setData(parseResult[1])
@@ -143,6 +170,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                     np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
         # max_ind = np.argmax(array, axis=-1)
 
+    '''
     def parseSerial(self): # Parses the input from serial port and converts to array
         if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
             return np.zeros((4,4))
@@ -169,6 +197,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                 # return temp_array
         else:
             return np.zeros((4,4))
+    '''
 
     # Add Keyboard Shortcuts
     def keyPressEvent(self, event):

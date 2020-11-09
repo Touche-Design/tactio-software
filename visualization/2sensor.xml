@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <data>
     <sensor name="Zero">
-        <id>69</id>
+        <id>0</id>
         <x_pos>100</x_pos>
         <y_pos>50</y_pos>
     </sensor>
 
+    <!--
     <sensor name="One">
-        <id>70</id>
+        <id>1</id>
         <x_pos>400</x_pos>
         <y_pos>50</y_pos>
     </sensor>
-    <!--
     <sensor name="Three">
         <id>23</id>
         <x_pos>100</x_pos>
