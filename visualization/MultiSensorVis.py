@@ -134,7 +134,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def record(self):
         self.is_recording = not self.is_recording
         if self.is_recording:
-            self.recording = {id : np.zeros((1,4,4)) for id in self.sensorIDs} #dictionary holding previous recordings
+            self.recording = {id : np.empty((1,4,4)) for id in self.sensorIDs} #dictionary holding previous recordings
             self.rec_btn.setStyleSheet("min-height: 50px;"
                                        "max-height: 50px;"
                                        "min-width: 50px;"
@@ -158,7 +158,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
             if save_name != '':
                 with open(save_name, "w") as outfile:  
-                    json.dump(self.recording[1:], outfile, cls=NumpyArrayEncoder) 
+                    json.dump(self.recording, outfile, cls=NumpyArrayEncoder) 
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
         #self.parseSerial()
