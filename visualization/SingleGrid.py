@@ -14,16 +14,30 @@ class GridPoint(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(QtWidgets.QWidget, self).__init__(*args, **kwargs)
         self.setAutoFillBackground(True)
+        self.value = QtWidgets.QLabel()
+        self.value.setParent(self)
+        self.value.setAlignment(QtCore.Qt.AlignCenter)
+        self.value.setStyleSheet('QLabel {color: #FFFFFF;}')
+        #self.value.setText('This is colored text')
+
         p = self.palette()
         p.setColor(self.backgroundRole(), QtGui.QColor(random.randrange(255), random.randrange(255), random.randrange(255)))
         self.setPalette(p)
         self.setMinimumHeight(80)
         self.setMinimumWidth(80)
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.value)
+        self.setLayout(layout)
+
+
+    def setValue(self, num):
+        self.value.setText(str(int(num)))
 
     def setColor(self, color):
         p = self.palette()
         p.setColor(self.backgroundRole(), color)
         self.setPalette(p)
+
 
 '''
 This widget is the main component of the visualization. It has a grid of 4 x 4 grid points which change color based on input
@@ -39,11 +53,17 @@ class SensorGrid(QtWidgets.QWidget):
         [GridPoint(), GridPoint(), GridPoint(), GridPoint()],
         [GridPoint(), GridPoint(), GridPoint(), GridPoint()]]
 
+        self.data = np.zeros((4,4))
+        self.id = 0
+
         # We arrange rows using HBoxLayouts
         hboxes = [QtWidgets.QHBoxLayout(), QtWidgets.QHBoxLayout(), QtWidgets.QHBoxLayout(), QtWidgets.QHBoxLayout()]
 
         # And a single VBoxLayout arranges all the rows into a grid
         vbox = QtWidgets.QVBoxLayout()
+        self.id_box = QtWidgets.QLabel("Sensor ID: {}".format(self.id))
+        self.id_box.setAlignment(QtCore.Qt.AlignCenter)
+        vbox.addWidget(self.id_box)
 
         # Loop through all widgets and add them accordingly
         for i in range(len(hboxes)):
@@ -52,10 +72,12 @@ class SensorGrid(QtWidgets.QWidget):
                 hboxes[i].addSpacing(10) #Spacing between columns
             vbox.addItem(hboxes[i]) #Add each row to the VBoxLayout
 
-        self.data = np.zeros((4,4))
-        self.id = 0
-
         self.setLayout(vbox)
+
+    def setId(self, id):
+        self.id = id
+        self.id_box.setText(str(id))
+
 
     def setData(self, data, show = True):
         self.data = data
@@ -68,6 +90,7 @@ class SensorGrid(QtWidgets.QWidget):
     def setColors(self, colors):
         for i in range(len(self.gridWidgets[0])): 
             for j in range(len(self.gridWidgets)):
+                self.gridWidgets[i][j].setValue(colors[i][j])
                 self.setGridColor(self.gridWidgets[i][j], colors[i][j])
 
     def setGridColor(self, gridWidget, color):

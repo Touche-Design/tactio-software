@@ -26,7 +26,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             self.sensorWidgets[i].id = self.sensorIDs[i]
             self.sensorWidgets[i].sendData.connect(self.sendMessageCallback)
             self.sensorWidgets[i].setParent(sensorAreaWidget)
-            self.sensorWidgets[i].resize(100,100)
+            self.sensorWidgets[i].resize(400,400)
             sensorx = int(position_data[i].find('x_pos').text)
             sensory = int(position_data[i].find('y_pos').text)
             self.sensorWidgets[i].move(sensorx, sensory)
