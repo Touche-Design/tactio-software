@@ -158,7 +158,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
             if save_name != '':
                 with open(save_name, "w") as outfile:  
-                    json.dump(self.recording, outfile, cls=NumpyArrayEncoder) 
+                    json.dump(self.recording[1:], outfile, cls=NumpyArrayEncoder) 
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
         #self.parseSerial()
