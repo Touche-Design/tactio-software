@@ -15,23 +15,38 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(QtWidgets.QMainWindow, self).__init__(*args, **kwargs)
         self.setWindowTitle("Tactio")
-        position_data = et.parse('1sensor.xml').getroot()
+        position_data = et.parse('2sensor.xml').getroot()
         self.sensorCount = len(position_data)
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
-        print(self.sensorIDs)
 
         sensorAreaWidget = QtGui.QWidget()
         self.sensorWidgets = [SingleGrid.SensorGrid() for i in range(self.sensorCount)]
+        sensorXpos = []
+        sensorYpos = []
+        sizes = []
         for i in range(self.sensorCount):
-            self.sensorWidgets[i].id = self.sensorIDs[i]
+            self.sensorWidgets[i].setId(self.sensorIDs[i])
             self.sensorWidgets[i].sendData.connect(self.sendMessageCallback)
             self.sensorWidgets[i].setParent(sensorAreaWidget)
-            self.sensorWidgets[i].resize(100,100)
             sensorx = int(position_data[i].find('x_pos').text)
+            sensorXpos.append(sensorx)
             sensory = int(position_data[i].find('y_pos').text)
+            sensorYpos.append(sensory)
+            size = 400
+            try:
+                size = int(position_data[i].find('size').text)
+            except:
+                size = 400
+            sizes.append(size)
+            self.sensorWidgets[i].resize(size,size)
+
             self.sensorWidgets[i].move(sensorx, sensory)
 
-        sensorAreaWidget.setMinimumSize(800, 800)
+        # Compute Max Width
+        maxsizeX = max(sensorXpos) + sizes[sensorXpos.index(max(sensorXpos))] + min(sensorXpos) 
+        maxsizeY = max(sensorYpos) + sizes[sensorYpos.index(max(sensorYpos))] + min(sensorYpos) 
+
+        sensorAreaWidget.setMinimumSize(maxsizeX, maxsizeY)
         #print(int(position_data[0].find('id').text))
         #adding buttons for recording and saving
         self.rec_btn = QtGui.QPushButton("Rec", self)
@@ -134,7 +149,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def record(self):
         self.is_recording = not self.is_recording
         if self.is_recording:
-            self.recording = {id : np.zeros((1,4,4)) for id in self.sensorIDs} #dictionary holding previous recordings
+            self.recording = {id : np.empty((1,4,4)) for id in self.sensorIDs} #dictionary holding previous recordings
             self.rec_btn.setStyleSheet("min-height: 50px;"
                                        "max-height: 50px;"
                                        "min-width: 50px;"
