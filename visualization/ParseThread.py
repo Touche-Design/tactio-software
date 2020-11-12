@@ -55,33 +55,6 @@ class Parser(QtCore.QRunnable):
 
 
     def parseSerial(self): # Parses the input from serial port and converts to array
-        '''
-        if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
-            return (0,np.zeros((4,4)))
-        count = 0 # Indicates row
-        temp_array = np.zeros((4,4))
-        started = False
-        inStr = self.input_ser.readline()
-        inputs = inStr.decode('utf-8').split(";")
-        if(inputs[0][0] == '$'):
-            started = True
-
-        if(len(inputs) > 1 and started):
-            id = int(inputs[0][1:])
-            for x in inputs[1:]:
-                row_split = x.split(",")
-                if(row_split[0].find("$") == -1 and len(row_split) > 1):
-                    row_int = [int(row_split[i]) for i in range(len(row_split))]
-                    if(np.shape(row_int)[0] == 4):
-                        temp_array[count,:] = row_int
-                        count += 1
-            if(count > 3):
-                print(temp_array)
-                #self.sensorWidgets[self.sensorIDs.index(id)].setData(temp_array)
-                return (id, temp_array)
-        else:
-            return (0,np.zeros((4,4)))
-        '''
         if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
             return 1, (0,np.zeros((4,4)))
         else:
