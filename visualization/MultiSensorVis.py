@@ -39,7 +39,6 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                 size = 400
             sizes.append(size)
             self.sensorWidgets[i].resize(size,size)
-
             self.sensorWidgets[i].move(sensorx, sensory)
 
         # Compute Max Width
@@ -94,7 +93,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         #initializing recording
         self.is_recording = False
         #self.recording = np.zeros((1,4,4))
-        self.recording = {id : np.zeros((1,4,4)) for id in self.sensorIDs} #dictionary holding previous recordings
+        self.recording = {id : np.empty((1,4,4)) for id in self.sensorIDs} #dictionary holding previous recordings
 
         # QTimer kicks off every 0.1 seconds to update the visualization
         self.vizTimer = QtCore.QTimer()

@@ -4,14 +4,14 @@
         <id>17</id>
         <x_pos>100</x_pos>
         <y_pos>50</y_pos>
-        <size>250</size>
+        <size>200</size>
     </sensor>
 
     <sensor>
         <id>20</id>
         <x_pos>400</x_pos>
         <y_pos>50</y_pos>
-        <size>250</size>
+        <size>180</size>
     </sensor>
     <!--
     <sensor>

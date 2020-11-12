@@ -15,16 +15,17 @@ class GridPoint(QtWidgets.QWidget):
         super(QtWidgets.QWidget, self).__init__(*args, **kwargs)
         self.setAutoFillBackground(True)
         self.value = QtWidgets.QLabel()
+        self.value.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Ignored,
+                                             QtGui.QSizePolicy.Ignored))
         self.value.setParent(self)
-        self.value.setAlignment(QtCore.Qt.AlignCenter)
         self.value.setStyleSheet('QLabel {color: #FFFFFF;}')
-        #self.value.setText('This is colored text')
+        self.value.setAlignment(QtCore.Qt.AlignCenter)
 
         p = self.palette()
         p.setColor(self.backgroundRole(), QtGui.QColor(random.randrange(255), random.randrange(255), random.randrange(255)))
         self.setPalette(p)
-        self.setMinimumHeight(80)
-        self.setMinimumWidth(80)
+        #self.setMinimumHeight(80)
+        #self.setMinimumWidth(80)
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.value)
         self.setLayout(layout)
@@ -32,6 +33,7 @@ class GridPoint(QtWidgets.QWidget):
 
     def setValue(self, num):
         self.value.setText(str(int(num)))
+        #self.value.adjustSize()
 
     def setColor(self, color):
         p = self.palette()
@@ -69,10 +71,12 @@ class SensorGrid(QtWidgets.QWidget):
         for i in range(len(hboxes)):
             for j in range(len(self.gridWidgets[i])):
                 hboxes[i].addWidget(self.gridWidgets[i][j])
-                hboxes[i].addSpacing(10) #Spacing between columns
+                hboxes[i].setSpacing(0) #Spacing between columns
             vbox.addItem(hboxes[i]) #Add each row to the VBoxLayout
 
+        vbox.setSpacing(0)
         self.setLayout(vbox)
+        self.setMinimumSize(200,200)
 
     def setId(self, id):
         self.id = id
