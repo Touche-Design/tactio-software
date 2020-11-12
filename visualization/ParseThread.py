@@ -108,6 +108,7 @@ class Parser(QtCore.QRunnable):
                     # For each row
                     for j in range(4):
                         data[j,i] = int.from_bytes(self.input_ser.read() + self.input_ser.read(), byteorder='big')
+                print(addr)
                 print(data)
                 return (addr, data), 0
 

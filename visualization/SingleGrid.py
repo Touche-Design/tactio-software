@@ -61,7 +61,7 @@ class SensorGrid(QtWidgets.QWidget):
 
         # And a single VBoxLayout arranges all the rows into a grid
         vbox = QtWidgets.QVBoxLayout()
-        self.id_box = QtWidgets.QLabel("Sensor ID: {}".format(self.id))
+        self.id_box = QtWidgets.QLabel("Sensor {}".format(self.id))
         self.id_box.setAlignment(QtCore.Qt.AlignCenter)
         vbox.addWidget(self.id_box)
 
@@ -76,7 +76,7 @@ class SensorGrid(QtWidgets.QWidget):
 
     def setId(self, id):
         self.id = id
-        self.id_box.setText(str(id))
+        self.id_box.setText("Sensor {}".format(self.id))
 
 
     def setData(self, data, show = True):
