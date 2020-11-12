@@ -32,3 +32,6 @@ class SerialProcessor:
                     for j in range(4):
                         data[j,i] = int.from_bytes(self.input_ser.read() + self.input_ser.read(), byteorder='big')
                 return (addr, data), 0
+            else:
+                # In case neither applies here
+                return (byte), -1
