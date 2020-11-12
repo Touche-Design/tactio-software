@@ -184,35 +184,6 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                     np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
         # max_ind = np.argmax(array, axis=-1)
 
-    '''
-    def parseSerial(self): # Parses the input from serial port and converts to array
-        if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
-            return np.zeros((4,4))
-        count = 0 # Indicates row
-        temp_array = np.zeros((4,4))
-        started = False
-        inStr = self.input_ser.readline()
-        inputs = inStr.decode('utf-8').split(";")
-        if(inputs[0][0] == '$'):
-            started = True
-
-        if(len(inputs) > 1 and started):
-            id = int(inputs[0][1:])
-            for x in inputs[1:]:
-                row_split = x.split(",")
-                if(row_split[0].find("$") == -1 and len(row_split) > 1):
-                    row_int = [int(row_split[i]) for i in range(len(row_split))]
-                    if(np.shape(row_int)[0] == 4):
-                        temp_array[count,:] = row_int
-                        count += 1
-            if(count > 3):
-                print(temp_array)
-                self.sensorWidgets[self.sensorIDs.index(id)].setData(temp_array)
-                # return temp_array
-        else:
-            return np.zeros((4,4))
-    '''
-
     # Add Keyboard Shortcuts
     def keyPressEvent(self, event):
         if(event.key() == QtCore.Qt.Key_Escape): #Escape automatically closes
