@@ -65,14 +65,13 @@ class Parser(QtCore.QRunnable):
         Initialise the runner function with passed args, kwargs.
         '''
         while self.alive:
-            if(self.input_ser.inWaiting()):
-                try:
-                    result, msg = self.parser.parseSerial()
-                except:
-                    traceback.print_exc()
-                    exctype, value = sys.exc_info()[:2]
-                else:
-                    if(msg == 0) :
-                        self.signals.gridData.emit(result)  # Return the result of the processing
-                    elif(msg == 1):
-                        self.signals.sensorList.emit(result)
+            try:
+                result, msg = self.parser.parseSerial()
+            except:
+                traceback.print_exc()
+                exctype, value = sys.exc_info()[:2]
+            else:
+                if(msg == 0) :
+                    self.signals.gridData.emit(result)  # Return the result of the processing
+                elif(msg == 1):
+                    self.signals.sensorList.emit(result)
