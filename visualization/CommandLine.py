@@ -5,14 +5,16 @@ import time
 
 if __name__ == '__main__':
     spy = False
-    with serial.serial_for_url('spy:///dev/cu.usbmodem1412' if spy else '/dev/cu.usbmodem1412') as ser:
+    with serial.serial_for_url('spy:///dev/cu.usbmodem1422' if spy else '/dev/cu.usbmodem1422') as ser:
         ser.baudrate = 9600
         processor = SerialProcessor(ser)
         time.sleep(2)
         ser.write(b'\x01') # Get all known node addresses
         while True:
             result, msg = processor.parseSerial()
-            if msg == 1:
+            if msg == -2:
+                pass
+            elif msg == 1:
                 addrs_hex = ', '.join([f'0x{addr:02x}' for addr in result])
                 addrs_dec = ', '.join([f'{addr:3d}' for addr in result])
                 print(f'All known addresses: {addrs_hex} / {addrs_dec}')

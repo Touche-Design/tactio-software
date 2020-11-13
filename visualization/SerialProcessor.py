@@ -5,7 +5,9 @@ class SerialProcessor:
         self.input_ser = port
 
     def parseSerial(self): # Parses the input from serial port and converts to array
-        if ser.inWaiting():
+        if not self.input_ser.inWaiting():
+            return (), -2
+        else:
             if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
                 return (), -1
             else:
