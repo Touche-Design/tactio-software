@@ -1,6 +1,6 @@
 import serial
 import numpy as np
-from SerialProcessor import SerialProcessor
+from PyTactio import SerialProcessor
 import time
 
 if __name__ == '__main__':

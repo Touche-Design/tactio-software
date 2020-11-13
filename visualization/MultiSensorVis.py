@@ -6,6 +6,7 @@ import numpy as np
 import serial
 import json
 import time
+import PyTactio
 
 from NumpyArrayEncoder import NumpyArrayEncoder
 import SingleGrid
@@ -80,7 +81,6 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         cmdButtonHbox = QtWidgets.QHBoxLayout()
         cmdButtonHbox.addWidget(flashLED)
 
-
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(sensorAreaWidget)
 
@@ -109,26 +109,30 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         self.show()
 
+        self.processor = PyTactio.SerialProcessor(self.input_ser)
+
         self.threadpool = QtCore.QThreadPool()
-        self.worker = ParseThread.Parser(self.input_ser) # Any other args, kwargs are passed to the run function
+        self.worker = ParseThread.Parser(self.processor) # Any other args, kwargs are passed to the run function
         self.worker.signals.gridData.connect(self.parseResultCallback)
         self.worker.signals.sensorList.connect(self.sensorListCallback)
         self.threadpool.start(self.worker) 
 
     def flashSequenceLEDs(self):
         for i in self.sensorIDs:
-            self.sendMessageCallback(((0b10000011, i)))
+            self.processor.sendLEDon(i)
             time.sleep(0.2)
         time.sleep(0.5)
         for i in self.sensorIDs:
-            self.sendMessageCallback(((0b10000010, i)))
+            self.processor.sendLEDon(i)
             time.sleep(0.2)
 
-
     def sendMessageCallback(self, sendData):
-        self.input_ser.write(int.to_bytes(sendData[0], 1, byteorder='big'))
-        self.input_ser.write(int.to_bytes(sendData[1], 1, byteorder='big'))
-        self.input_ser.flush()
+        if(sendData[0] == PyTactio.SerialActions.LEDON):
+            self.processor.sendLEDon(sendData[1])
+        elif(sendData[0] == PyTactio.SerialActions.LEDOFF):
+            self.processor.sendLEDoff(sendData[1])
+        elif(sendData[0] == PyTactio.SerialActions.CALIBRATE):
+            self.processor.sendCalibrate(sendData[1])
     
     def sensorListCallback(self, sensorList):
         print(sensorList)

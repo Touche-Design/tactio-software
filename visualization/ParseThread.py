@@ -3,7 +3,7 @@ import numpy as np
 import serial
 import traceback
 import sys
-from SerialProcessor import SerialProcessor
+from PyTactio import SerialProcessor
 
 class WorkerSignals(QtCore.QObject):
     '''
@@ -17,11 +17,11 @@ class WorkerSignals(QtCore.QObject):
     error
         `tuple` (exctype, value, traceback.format_exc() )
     
-    result
-        `object` data returned from processing, anything
+    gridData
+        tuple of numpy grid and sensor ID
 
-    progress
-        `int` indicating % progress 
+    sensorList
+        list of all available sensors
 
     '''
     finished = QtCore.pyqtSignal()
@@ -44,20 +44,12 @@ class Parser(QtCore.QRunnable):
 
     '''
 
-    def __init__(self, port):
+    def __init__(self, inputProcessor):
         super(Parser, self).__init__()
-
         # Store constructor arguments (re-used for processing)
-        self.input_ser = port
         self.signals = WorkerSignals()
         self.alive = True
-        self.parser = SerialProcessor(self.input_ser)
-
-
-    def printSerial(self):
-        input = self.input_ser.readline()
-        print(input)
-        return (69, input)
+        self.parser = inputProcessor
 
     @QtCore.pyqtSlot()
     def run(self):
