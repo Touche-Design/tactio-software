@@ -15,7 +15,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(QtWidgets.QMainWindow, self).__init__(*args, **kwargs)
         self.setWindowTitle("Tactio")
-        position_data = et.parse('2sensor.xml').getroot()
+        position_data = et.parse('1sensor.xml').getroot()
         self.sensorCount = len(position_data)
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
 
@@ -42,8 +42,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             self.sensorWidgets[i].move(sensorx, sensory)
 
         # Compute Max Width
-        maxsizeX = max(sensorXpos) + sizes[sensorXpos.index(max(sensorXpos))] + min(sensorXpos) 
-        maxsizeY = max(sensorYpos) + sizes[sensorYpos.index(max(sensorYpos))] + min(sensorYpos) 
+        maxsizeX = max(sensorXpos) + self.sensorWidgets[sensorXpos.index(max(sensorXpos))].width() + min(sensorXpos) 
+        maxsizeY = max(sensorYpos) + self.sensorWidgets[sensorYpos.index(max(sensorYpos))].height() + min(sensorYpos) 
 
         sensorAreaWidget.setMinimumSize(maxsizeX, maxsizeY)
         #print(int(position_data[0].find('id').text))
@@ -78,7 +78,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         flashLED = QtWidgets.QPushButton("Flash LEDs")
         flashLED.clicked.connect(self.flashSequenceLEDs)
         cmdButtonHbox = QtWidgets.QHBoxLayout()
-        cmdButtonHbox.addWidget(flashLED)
+        #cmdButtonHbox.addWidget(flashLED)
 
 
         vbox = QtWidgets.QVBoxLayout()
@@ -175,14 +175,10 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                     json.dump(self.recording, outfile, cls=NumpyArrayEncoder) 
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
-        #self.parseSerial()
-
-        # out_dict = {id : self.sensorWidgets[self.sensorIDs.index(id)].data for id in self.sensorIDs}
         if self.is_recording:
             for id in self.sensorIDs:
                 self.recording[id] = np.append(self.recording[id], \
                     np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
-        # max_ind = np.argmax(array, axis=-1)
 
     '''
     def parseSerial(self): # Parses the input from serial port and converts to array
