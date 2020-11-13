@@ -43,7 +43,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             self.sensorWidgets[i].move(sensorx, sensory)
 
         # Compute Max Width
-        maxsizeX = max(sensorXpos) + sizes[sensorXpos.index(max(sensorXpos))] + min(sensorXpos) 
+        maxsizeX = max(sensorXpos) + self.sensorWidgets[sensorXpos.index(max(sensorXpos))].size + min(sensorXpos) 
         maxsizeY = max(sensorYpos) + sizes[sensorYpos.index(max(sensorYpos))] + min(sensorYpos) 
 
         sensorAreaWidget.setMinimumSize(maxsizeX, maxsizeY)
