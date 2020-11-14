@@ -1,4 +1,10 @@
 import numpy as np
+from enum import Enum
+
+class SerialActions(Enum):
+    LEDON = 0
+    LEDOFF = 1
+    CALIBRATE = 2
 
 class SerialProcessor:
     def __init__(self, port):
