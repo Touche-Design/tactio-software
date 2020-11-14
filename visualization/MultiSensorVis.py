@@ -15,7 +15,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(QtWidgets.QMainWindow, self).__init__(*args, **kwargs)
         self.setWindowTitle("Tactio")
-        position_data = et.parse('1sensor.xml').getroot()
+        position_data = et.parse('16sensor.xml').getroot()
         self.sensorCount = len(position_data)
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
 
@@ -103,7 +103,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         #self.input_ser = serial.Serial('COM8') #Serial port for STM32
         self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
-        self.input_ser.baudrate = 9600
+        self.input_ser.baudrate = 230400
 
         self.display_on = True
 
