@@ -78,7 +78,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         flashLED = QtWidgets.QPushButton("Flash LEDs")
         flashLED.clicked.connect(self.flashSequenceLEDs)
         cmdButtonHbox = QtWidgets.QHBoxLayout()
-        #cmdButtonHbox.addWidget(flashLED)
+        cmdButtonHbox.addWidget(flashLED)
 
 
         vbox = QtWidgets.QVBoxLayout()

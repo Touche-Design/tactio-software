@@ -23,8 +23,9 @@ class GridPoint(QtWidgets.QWidget):
         self.value.setFont(QtGui.QFont("Arial", 10))
 
         p = self.palette()
-        p.setColor(self.backgroundRole(), QtGui.QColor(random.randrange(255), random.randrange(255), random.randrange(255)))
+        p.setColor(self.backgroundRole(), QtGui.QColor(0,0,0))
         self.setPalette(p)
+        self.setValue(0)
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.value)
         self.setLayout(layout)
