@@ -3,8 +3,7 @@ import numpy as np
 import serial
 import traceback
 import sys
-
-
+from PyTactio import SerialProcessor, SerialStatus
 
 class WorkerSignals(QtCore.QObject):
     '''
@@ -18,11 +17,11 @@ class WorkerSignals(QtCore.QObject):
     error
         `tuple` (exctype, value, traceback.format_exc() )
     
-    result
-        `object` data returned from processing, anything
+    gridData
+        tuple of numpy grid and sensor ID
 
-    progress
-        `int` indicating % progress 
+    sensorList
+        list of all available sensors
 
     '''
     finished = QtCore.pyqtSignal()
@@ -45,48 +44,12 @@ class Parser(QtCore.QRunnable):
 
     '''
 
-    def __init__(self, port):
+    def __init__(self, inputProcessor):
         super(Parser, self).__init__()
-
         # Store constructor arguments (re-used for processing)
-        self.input_ser = port
         self.signals = WorkerSignals()
         self.alive = True
-
-
-    def parseSerial(self): # Parses the input from serial port and converts to array
-        if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
-            return 1, (0,np.zeros((4,4)))
-        else:
-            byte = None
-            # Wait until 0xFF is read
-            while(not byte == 255):
-                byte = int.from_bytes(self.input_ser.read(), byteorder='big')
-            # Read in command byte
-            byte = int.from_bytes(self.input_ser.read(), byteorder='big')
-            # 0x50 corresponds to all known addresses
-            if(byte == 0x50):
-                length = int.from_bytes(self.input_ser.read(), byteorder='big')
-                addrs = length * [None]
-                for i in range(length):
-                    addrs[i] = int.from_bytes(self.input_ser.read(), byteorder='big')
-                return addrs, 1
-            # 0b0100 corresponds to column data
-            elif(byte&0xF0 == 0b01000000):
-                valid = byte&0x0F
-                addr = int.from_bytes(self.input_ser.read(), byteorder='big')
-                data = np.zeros((4,4))
-                # For each column
-                for i in range(4):
-                    # For each row
-                    for j in range(3,-1, -1):
-                        data[i,j] = int.from_bytes(self.input_ser.read() + self.input_ser.read(), byteorder='big')
-                return (addr, data), 0
-
-    def printSerial(self):
-        input = self.input_ser.readline()
-        print(input)
-        return (69, input)
+        self.parser = inputProcessor
 
     @QtCore.pyqtSlot()
     def run(self):
@@ -94,14 +57,13 @@ class Parser(QtCore.QRunnable):
         Initialise the runner function with passed args, kwargs.
         '''
         while self.alive:
-            if(self.input_ser.inWaiting()):
-                try:
-                    result, msg = self.parseSerial()
-                except:
-                    traceback.print_exc()
-                    exctype, value = sys.exc_info()[:2]
-                else:
-                    if(msg == 0) :
-                        self.signals.gridData.emit(result)  # Return the result of the processing
-                    elif(msg == 1):
-                        self.signals.sensorList.emit(result)
+            try:
+                result, msg = self.parser.parseSerial()
+            except:
+                traceback.print_exc()
+                exctype, value = sys.exc_info()[:2]
+            else:
+                if(msg == SerialStatus.DATA) :
+                    self.signals.gridData.emit(result)  # Return the result of the processing
+                elif(msg == SerialStatus.NET_ADDRS):
+                    self.signals.sensorList.emit(result)

@@ -3,6 +3,7 @@ from pyqtgraph import PlotWidget, plot
 import random
 import sys  # We need sys so that we can pass argv to QApplication
 import os
+from PyTactio import SerialActions
 
 import numpy as np
 
@@ -120,8 +121,8 @@ class SensorGrid(QtWidgets.QWidget):
 
         action = contextMenu.exec_(self.mapToGlobal(event.pos()))
         if(action == onLEDAct):
-            self.sendData.emit((0b10000011, self.id))
+            self.sendData.emit((SerialActions.LEDON, self.id))
         elif(action == offLEDAct):
-            self.sendData.emit((0b10000010, self.id))
+            self.sendData.emit((SerialActions.LEDOFF, self.id))
         elif(action == calibrateAct):
-            self.sendData.emit((0b10001000, self.id))
+            self.sendData.emit((SerialActions.CALIBRATE, self.id))
