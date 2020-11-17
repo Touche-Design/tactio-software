@@ -16,7 +16,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(QtWidgets.QMainWindow, self).__init__(*args, **kwargs)
         self.setWindowTitle("Tactio")
-        position_data = et.parse('2sensor.xml').getroot()
+        position_data = et.parse('1sensor.xml').getroot()
         self.sensorCount = len(position_data)
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
 
