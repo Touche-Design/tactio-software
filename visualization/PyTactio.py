@@ -6,6 +6,15 @@ class SerialActions(Enum):
     LEDOFF = 1
     CALIBRATE = 2
 
+class SerialStatus(Enum):
+    PORT_EMPTY = -2
+    PORT_CLOSED = -1
+    NET_ADDRS = 1
+    DATA = 0
+    ERROR = -1
+
+
+
 class SerialProcessor:
     def __init__(self, port):
         self.input_ser = port
@@ -22,10 +31,10 @@ class SerialProcessor:
 
     def parseSerial(self): # Parses the input from serial port and converts to array
         if not self.input_ser.inWaiting():
-            return (), -2
+            return (), SerialStatus.PORT_EMPTY
         else:
             if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in
-                return (), -1
+                return (), SerialStatus.PORT_CLOSED
             else:
                 byte = None
                 # Wait until 0xFF is read
@@ -39,7 +48,7 @@ class SerialProcessor:
                     addrs = length * [None]
                     for i in range(length):
                         addrs[i] = int.from_bytes(self.input_ser.read(), byteorder='big')
-                    return addrs, 1
+                    return addrs, SerialStatus.NET_ADDRS
                 # 0b0100 corresponds to column data
                 elif(byte&0xF0 == 0b01000000):
                     valid = byte&0x0F
@@ -50,7 +59,7 @@ class SerialProcessor:
                         # For each row
                         for j in range(4):
                             data[j,i] = int.from_bytes(self.input_ser.read() + self.input_ser.read(), byteorder='big')
-                    return (addr, data), 0
+                    return (addr, data), SerialStatus.DATA
                 else:
                     # In case neither applies here
-                    return (byte), -1
+                    return (byte), SerialStatus.ERROR

@@ -3,7 +3,7 @@ import numpy as np
 import serial
 import traceback
 import sys
-from PyTactio import SerialProcessor
+from PyTactio import SerialProcessor, SerialStatus
 
 class WorkerSignals(QtCore.QObject):
     '''
@@ -63,7 +63,7 @@ class Parser(QtCore.QRunnable):
                 traceback.print_exc()
                 exctype, value = sys.exc_info()[:2]
             else:
-                if(msg == 0) :
+                if(msg == SerialStatus.DATA) :
                     self.signals.gridData.emit(result)  # Return the result of the processing
-                elif(msg == 1):
+                elif(msg == SerialStatus.NET_ADDRS):
                     self.signals.sensorList.emit(result)
