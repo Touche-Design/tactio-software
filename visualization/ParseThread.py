@@ -79,7 +79,7 @@ class Parser(QtCore.QRunnable):
                 # For each column
                 for i in range(4):
                     # For each row
-                    for j in range(4):
+                    for j in range(3,-1, -1):
                         data[i,j] = int.from_bytes(self.input_ser.read() + self.input_ser.read(), byteorder='big')
                 return (addr, data), 0
 
