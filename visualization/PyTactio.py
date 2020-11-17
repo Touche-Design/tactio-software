@@ -9,6 +9,16 @@ class SerialActions(Enum):
 class SerialProcessor:
     def __init__(self, port):
         self.input_ser = port
+    
+    def sendLEDon(self, id):
+        self.input_ser.write(int.to_bytes(0b10000011, 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(id, 1, byteorder='big'))
+        self.input_ser.flush()
+
+    def sendLEDoff(self, id):
+        self.input_ser.write(int.to_bytes(0b10000010, 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(id, 1, byteorder='big'))
+        self.input_ser.flush()
 
     def parseSerial(self): # Parses the input from serial port and converts to array
         if not self.input_ser.inWaiting():

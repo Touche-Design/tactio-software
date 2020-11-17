@@ -21,25 +21,28 @@ class GridPoint(QtWidgets.QWidget):
         self.value.setParent(self)
         self.value.setStyleSheet('QLabel {color: #FFFFFF;}')
         self.value.setAlignment(QtCore.Qt.AlignCenter)
+        self.value.setFont(QtGui.QFont("Arial", 10))
 
         p = self.palette()
-        p.setColor(self.backgroundRole(), QtGui.QColor(random.randrange(255), random.randrange(255), random.randrange(255)))
+        p.setColor(self.backgroundRole(), QtGui.QColor(0,0,0))
         self.setPalette(p)
-        #self.setMinimumHeight(80)
-        #self.setMinimumWidth(80)
+        self.setValue(0)
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.value)
         self.setLayout(layout)
 
-
     def setValue(self, num):
         self.value.setText(str(int(num)))
-        #self.value.adjustSize()
+    
+    def resizeEvent(self, e):
+        self.value.setFont(QtGui.QFont("Arial", int(self.width()/6)))
 
     def setColor(self, color):
         p = self.palette()
         p.setColor(self.backgroundRole(), color)
         self.setPalette(p)
+
+ 
 
 
 '''
@@ -82,7 +85,11 @@ class SensorGrid(QtWidgets.QWidget):
     def setId(self, id):
         self.id = id
         self.id_box.setText("Sensor {}".format(self.id))
-
+   
+    def resizeEvent(self, e):
+        for i in range(len(self.gridWidgets[0])): 
+            for j in range(len(self.gridWidgets)):
+                self.gridWidgets[i][j].setFixedSize(self.width() / 4, self.height()/4)
 
     def setData(self, data, show = True):
         self.data = data

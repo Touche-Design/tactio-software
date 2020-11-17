@@ -43,8 +43,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             self.sensorWidgets[i].move(sensorx, sensory)
 
         # Compute Max Width
-        maxsizeX = max(sensorXpos) + self.sensorWidgets[sensorXpos.index(max(sensorXpos))].size + min(sensorXpos) 
-        maxsizeY = max(sensorYpos) + sizes[sensorYpos.index(max(sensorYpos))] + min(sensorYpos) 
+        maxsizeX = max(sensorXpos) + self.sensorWidgets[sensorXpos.index(max(sensorXpos))].width() + min(sensorXpos) 
+        maxsizeY = max(sensorYpos) + self.sensorWidgets[sensorYpos.index(max(sensorYpos))].height() + min(sensorYpos) 
 
         sensorAreaWidget.setMinimumSize(maxsizeX, maxsizeY)
         #print(int(position_data[0].find('id').text))
@@ -103,7 +103,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         #self.input_ser = serial.Serial('COM8') #Serial port for STM32
         self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
-        self.input_ser.baudrate = 9600
+        self.input_ser.baudrate = 230400
 
         self.display_on = True
 
@@ -131,8 +131,6 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             self.processor.sendLEDon(sendData[1])
         elif(sendData[0] == PyTactio.SerialActions.LEDOFF):
             self.processor.sendLEDoff(sendData[1])
-        elif(sendData[0] == PyTactio.SerialActions.CALIBRATE):
-            self.processor.sendCalibrate(sendData[1])
     
     def sensorListCallback(self, sensorList):
         print(sensorList)
@@ -179,14 +177,10 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                     json.dump(self.recording, outfile, cls=NumpyArrayEncoder) 
 
     def timerCallback(self): # Kicks off when QTimer has a timeout event
-        #self.parseSerial()
-
-        # out_dict = {id : self.sensorWidgets[self.sensorIDs.index(id)].data for id in self.sensorIDs}
         if self.is_recording:
             for id in self.sensorIDs:
                 self.recording[id] = np.append(self.recording[id], \
                     np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
-        # max_ind = np.argmax(array, axis=-1)
 
     # Add Keyboard Shortcuts
     def keyPressEvent(self, event):
