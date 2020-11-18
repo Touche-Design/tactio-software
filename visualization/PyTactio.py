@@ -37,8 +37,6 @@ class SerialProcessor:
             intercept_scale_factor = 100
             slope_scaled = int(slope*slope_scale_factor)
             intercept_scaled = int(intercept*intercept_scale_factor)
-            print(slope_scaled)
-            print(intercept_scaled)
             self.input_ser.write(int.to_bytes(0b10001100, 1, byteorder='big'))
             self.input_ser.write(int.to_bytes(node_address, 1, byteorder='big',signed=False))
             self.input_ser.write(int.to_bytes(slope_scaled, 2, byteorder='big',signed=False))
