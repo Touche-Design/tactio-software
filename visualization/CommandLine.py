@@ -22,9 +22,10 @@ if __name__ == '__main__':
             if msg == SerialStatus.PORT_EMPTY:
                 pass
             elif msg == SerialStatus.NET_ADDRS:
+                result.sort()
                 addrs_hex = ', '.join([f'0x{addr:02x}' for addr in result])
                 addrs_dec = ', '.join([f'{addr:3d}' for addr in result])
-                print(f'All known addresses: {addrs_hex} / {addrs_dec}')
+                print(f'All known addresses ({len(result)} nodes): {addrs_hex} / {addrs_dec}')
             elif msg == SerialStatus.DATA:
                 addr, data = result
                 if not args.hide_data:
