@@ -29,6 +29,23 @@ class SerialProcessor:
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big'))
         self.input_ser.flush()
 
+    def sendCalibration(self, cal_array):
+        for node_name in cal_array:
+            node_address = int(node_name[4:])
+            (slope, intercept) = cal_array[node_name]
+            slope_scale_factor = 0.1
+            intercept_scale_factor = 100
+            slope_scaled = int(slope*slope_scale_factor)
+            intercept_scaled = int(intercept*intercept_scale_factor)
+            print(slope_scaled)
+            print(intercept_scaled)
+            self.input_ser.write(int.to_bytes(0b10001100, 1, byteorder='big'))
+            self.input_ser.write(int.to_bytes(node_address, 1, byteorder='big',signed=False))
+            self.input_ser.write(int.to_bytes(slope_scaled, 2, byteorder='big',signed=False))
+            self.input_ser.write(int.to_bytes(intercept_scaled, 2, byteorder='big', signed=True))
+            self.input_ser.flush()
+
+
     def parseSerial(self): # Parses the input from serial port and converts to array
         if not self.input_ser.inWaiting():
             return (), SerialStatus.PORT_EMPTY
@@ -63,3 +80,5 @@ class SerialProcessor:
                 else:
                     # In case neither applies here
                     return (byte), SerialStatus.ERROR
+
+
