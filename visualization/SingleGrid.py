@@ -94,10 +94,10 @@ class SensorGrid(QtWidgets.QWidget):
     def setData(self, data, show = True):
         self.data = data
         if(show):
-            self.setColors(data)
+            self.setColors(self.data2color(data))
 
     def data2color(self,data): # Here we can add some sort of scaling (linear or logarithmic)
-        return data
+        return data*3
 
     def setColors(self, colors):
         for i in range(len(self.gridWidgets[0])): 
@@ -117,12 +117,12 @@ class SensorGrid(QtWidgets.QWidget):
         contextMenu = QtWidgets.QMenu(self)
         onLEDAct = contextMenu.addAction("Turn LED On")
         offLEDAct = contextMenu.addAction("Turn LED Off")
-        calibrateAct = contextMenu.addAction("Calibrate Sensor")
+        calibrateBias = contextMenu.addAction("Calibrate Bias")
 
         action = contextMenu.exec_(self.mapToGlobal(event.pos()))
         if(action == onLEDAct):
             self.sendData.emit((SerialActions.LEDON, self.id))
         elif(action == offLEDAct):
             self.sendData.emit((SerialActions.LEDOFF, self.id))
-        elif(action == calibrateAct):
-            self.sendData.emit((SerialActions.CALIBRATE, self.id))
+        elif(action == calibrateBias):
+            self.sendData.emit((SerialActions.CAL_BIAS, self.id))

@@ -4,7 +4,7 @@ from enum import Enum
 class SerialActions(Enum):
     LEDON = 0
     LEDOFF = 1
-    CALIBRATE = 2
+    CAL_BIAS= 2
 
 class SerialStatus(Enum):
     PORT_EMPTY = -2
@@ -28,6 +28,12 @@ class SerialProcessor:
         self.input_ser.write(int.to_bytes(0b10000010, 1, byteorder='big'))
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big'))
         self.input_ser.flush()
+    
+    def sendCalBias(self, id):
+        self.input_ser.write(int.to_bytes(0b10001000, 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
+        self.input_ser.flush()
+
 
     def parseSerial(self): # Parses the input from serial port and converts to array
         if not self.input_ser.inWaiting():
@@ -58,7 +64,7 @@ class SerialProcessor:
                     for i in range(4):
                         # For each row
                         for j in range(4):
-                            data[j,i] = int.from_bytes(self.input_ser.read() + self.input_ser.read(), byteorder='big')
+                            data[j,i] = int.from_bytes(self.input_ser.read() + self.input_ser.read(), byteorder='big') & 0xFFF
                     return (addr, data), SerialStatus.DATA
                 else:
                     # In case neither applies here
