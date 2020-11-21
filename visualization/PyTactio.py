@@ -5,6 +5,8 @@ class SerialActions(Enum):
     LEDON = 0
     LEDOFF = 1
     CAL_BIAS= 2
+    BIAS_EN = 3
+    BIAS_DIS = 4
 
 class SerialStatus(Enum):
     PORT_EMPTY = -2
@@ -18,6 +20,9 @@ class SerialStatus(Enum):
 class SerialProcessor:
     def __init__(self, port):
         self.input_ser = port
+        self.biasCal = False
+        self.slopeCal = False
+        self.interCal = False
     
     def sendLEDon(self, id):
         self.input_ser.write(int.to_bytes(0b10000011, 1, byteorder='big'))
@@ -29,9 +34,25 @@ class SerialProcessor:
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big'))
         self.input_ser.flush()
     
-    def sendCalBias(self, id):
+    def sendCalCmd(self, id):
         self.input_ser.write(int.to_bytes(0b10001000, 1, byteorder='big'))
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
+        self.input_ser.flush()
+
+    def sendBiasCalEn(self, id):
+        self.biasCal = True
+        self.input_ser.write(int.to_bytes(0b00001110, 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
+        biasCalCmd = 0b00000000 | (self.biasCal << 2)  | (self.interCal << 1) | self.slopeCal
+        self.input_ser.write(int.to_bytes(biasCalCmd, 1, byteorder='big'))
+        self.input_ser.flush()
+
+    def sendBiasCalDis(self, id):
+        self.biasCal = False
+        self.input_ser.write(int.to_bytes(0b00001110, 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
+        biasCalCmd = 0b00000000 | (self.biasCal << 2)  | (self.interCal << 1) | self.slopeCal
+        self.input_ser.write(int.to_bytes(biasCalCmd, 1, byteorder='big'))
         self.input_ser.flush()
 
 

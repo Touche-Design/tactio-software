@@ -101,8 +101,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.vizTimer.timeout.connect(self.timerCallback)
         self.vizTimer.start()
 
-        #self.input_ser = serial.Serial('COM8') #Serial port for STM32
-        self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for STM32
+        self.input_ser = serial.Serial('COM7') #Serial port for STM32
+        #self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for STM32
         self.input_ser.baudrate = 230400
 
         self.display_on = True
@@ -132,7 +132,9 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         elif(sendData[0] == PyTactio.SerialActions.LEDOFF):
             self.processor.sendLEDoff(sendData[1])
         elif(sendData[0] == PyTactio.SerialActions.CAL_BIAS):
-            self.processor.sendCalBias(sendData[1])
+            self.processor.sendCalCmd(sendData[1])
+        elif(sendData[0] == PyTactio.SerialActions.BIAS_EN):
+            self.processor.sendBiasCalEn(sendData[1])
     
     def sensorListCallback(self, sensorList):
         print(sensorList)

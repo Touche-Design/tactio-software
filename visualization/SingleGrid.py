@@ -117,7 +117,12 @@ class SensorGrid(QtWidgets.QWidget):
         contextMenu = QtWidgets.QMenu(self)
         onLEDAct = contextMenu.addAction("Turn LED On")
         offLEDAct = contextMenu.addAction("Turn LED Off")
-        calibrateBias = contextMenu.addAction("Calibrate Bias")
+        calMenu = QtWidgets.QMenu(self)
+        calMenu.setTitle("Calibration")
+        calibrateBias = calMenu.addAction("Run Bias Calibration")
+        turnBiasCalOn = calMenu.addAction("Enable Bias Cal")
+        turnBiasCalOff = calMenu.addAction("Disable Bias Cal")
+        contextMenu.addMenu(calMenu)
 
         action = contextMenu.exec_(self.mapToGlobal(event.pos()))
         if(action == onLEDAct):
@@ -126,3 +131,7 @@ class SensorGrid(QtWidgets.QWidget):
             self.sendData.emit((SerialActions.LEDOFF, self.id))
         elif(action == calibrateBias):
             self.sendData.emit((SerialActions.CAL_BIAS, self.id))
+        elif(action == turnBiasCalOn):
+            self.sendData.emit((SerialActions.BIAS_EN, self.id))
+        elif(action == turnBiasCalOff):
+            self.sendData.emit((SerialActions.BIAS_DIS, self.id))
