@@ -1,10 +1,14 @@
 import numpy as np
-from enum import Enum
+from enum import Enum, auto
 
 class SerialActions(Enum):
-    LEDON = 0
-    LEDOFF = 1
-    CAL_BIAS= 2
+    LEDON = auto()
+    LEDOFF = auto()
+    CAL_BIAS = auto()
+    BIAS_EN = auto()
+    BIAS_DIS = auto()
+    HEART_ON = auto()
+    HEART_OFF = auto()
 
 class SerialStatus(Enum):
     PORT_EMPTY = -2
@@ -18,6 +22,9 @@ class SerialStatus(Enum):
 class SerialProcessor:
     def __init__(self, port):
         self.input_ser = port
+        self.biasCal = False
+        self.slopeCal = False
+        self.interCal = False
     
     def sendLEDon(self, id):
         self.input_ser.write(int.to_bytes(0b10000011, 1, byteorder='big'))
@@ -29,11 +36,36 @@ class SerialProcessor:
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big'))
         self.input_ser.flush()
     
-    def sendCalBias(self, id):
+    def sendCalCmd(self, id):
         self.input_ser.write(int.to_bytes(0b10001000, 1, byteorder='big'))
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
         self.input_ser.flush()
 
+    def sendBiasCalEn(self, id):
+        self.biasCal = True
+        self.input_ser.write(int.to_bytes(0b10001110, 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
+        biasCalCmd = 0b00000000 | (self.biasCal << 2)  | (self.interCal << 1) | self.slopeCal
+        self.input_ser.write(int.to_bytes(biasCalCmd, 1, byteorder='big'))
+        self.input_ser.flush()
+
+    def sendBiasCalDis(self, id):
+        self.biasCal = False
+        self.input_ser.write(int.to_bytes(0b10001110, 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
+        biasCalCmd = 0b00000000 | (self.biasCal << 2)  | (self.interCal << 1) | self.slopeCal
+        self.input_ser.write(int.to_bytes(biasCalCmd, 1, byteorder='big'))
+        self.input_ser.flush()
+    
+    def sendHeartOn(self, id):
+        self.input_ser.write(int.to_bytes(0b10010001, 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
+        self.input_ser.flush()
+
+    def sendHeartOff(self, id):
+        self.input_ser.write(int.to_bytes(0b10010000, 1, byteorder='big'))
+        self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
+        self.input_ser.flush()
 
     def parseSerial(self): # Parses the input from serial port and converts to array
         if not self.input_ser.inWaiting():
