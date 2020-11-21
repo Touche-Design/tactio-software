@@ -94,10 +94,14 @@ class SensorGrid(QtWidgets.QWidget):
     def setData(self, data, show = True):
         self.data = data
         if(show):
-            self.setColors(self.data2color(data))
+            #self.setColors(self.data2color(data))
+            for i in range(len(self.gridWidgets[0])): 
+                for j in range(len(self.gridWidgets)):
+                    self.gridWidgets[i][j].setValue(data[i][j])
+                    self.setGridColor(self.gridWidgets[i][j], self.data2color(data[i][j]))
 
     def data2color(self,data): # Here we can add some sort of scaling (linear or logarithmic)
-        return data*3
+        return 0.05*(data**2)
 
     def setColors(self, colors):
         for i in range(len(self.gridWidgets[0])): 
@@ -117,6 +121,8 @@ class SensorGrid(QtWidgets.QWidget):
         contextMenu = QtWidgets.QMenu(self)
         onLEDAct = contextMenu.addAction("Turn LED On")
         offLEDAct = contextMenu.addAction("Turn LED Off")
+        onHeartAct = contextMenu.addAction("Enable Heartbeat")
+        offHeartAct = contextMenu.addAction("Disable Heartbeat")
         calMenu = QtWidgets.QMenu(self)
         calMenu.setTitle("Calibration")
         calibrateBias = calMenu.addAction("Run Bias Calibration")
@@ -135,3 +141,7 @@ class SensorGrid(QtWidgets.QWidget):
             self.sendData.emit((SerialActions.BIAS_EN, self.id))
         elif(action == turnBiasCalOff):
             self.sendData.emit((SerialActions.BIAS_DIS, self.id))
+        elif(action == onHeartAct):
+            self.sendData.emit((SerialActions.HEART_ON, self.id))
+        elif(action == offHeartAct):
+            self.sendData.emit((SerialActions.HEART_OFF, self.id))

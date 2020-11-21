@@ -76,16 +76,10 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         #recordButtonHbox.addSpacing(10)
         recordButtonHbox.addWidget(self.rec_btn)
 
-        flashLED = QtWidgets.QPushButton("Flash LEDs")
-        flashLED.clicked.connect(self.flashSequenceLEDs)
-        cmdButtonHbox = QtWidgets.QHBoxLayout()
-        cmdButtonHbox.addWidget(flashLED)
-
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(sensorAreaWidget)
 
         vbox.addItem(recordButtonHbox)
-        vbox.addItem(cmdButtonHbox)
         mainWidget = QtWidgets.QWidget()
         mainWidget.setLayout(vbox)
         self.setCentralWidget(mainWidget)
@@ -101,8 +95,9 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.vizTimer.timeout.connect(self.timerCallback)
         self.vizTimer.start()
 
-        self.input_ser = serial.Serial('COM7') #Serial port for STM32
+        #self.input_ser = serial.Serial('COM8') #Serial port for STM32
         #self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for STM32
+        self.input_ser = serial.serial_for_url('/dev/ttyACM0') #Serial port for STM32
         self.input_ser.baudrate = 230400
 
         self.display_on = True
@@ -117,6 +112,17 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.worker.signals.sensorList.connect(self.sensorListCallback)
         self.threadpool.start(self.worker) 
 
+        menuBar = self.menuBar()
+        toolsMenu = menuBar.addMenu("Tools")
+        flash = toolsMenu.addAction("Flash LEDs")
+        flash.triggered.connect(self.flashSequenceLEDs)
+
+        heartDisable = toolsMenu.addAction("Disable Heartbeat")
+        heartDisable.triggered.connect(self.disableAllHeartbeat)
+
+        heartEnable = toolsMenu.addAction("Enable Heartbeat")
+        heartEnable.triggered.connect(self.enableAllHeartbeat)
+
     def flashSequenceLEDs(self):
         for i in self.sensorIDs:
             self.processor.sendLEDon(i)
@@ -125,6 +131,14 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         for i in self.sensorIDs:
             self.processor.sendLEDoff(i)
             time.sleep(0.2)
+
+    def disableAllHeartbeat(self):
+        for i in self.sensorIDs:
+            self.processor.sendHeartOff(i)
+
+    def enableAllHeartbeat(self):
+        for i in self.sensorIDs:
+            self.processor.sendHeartOn(i)
 
     def sendMessageCallback(self, sendData):
         if(sendData[0] == PyTactio.SerialActions.LEDON):
@@ -135,6 +149,12 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             self.processor.sendCalCmd(sendData[1])
         elif(sendData[0] == PyTactio.SerialActions.BIAS_EN):
             self.processor.sendBiasCalEn(sendData[1])
+        elif(sendData[0] == PyTactio.SerialActions.BIAS_DIS):
+            self.processor.sendBiasCalDis(sendData[1])
+        elif(sendData[0] == PyTactio.SerialActions.HEART_ON):
+            self.processor.sendHeartOn(sendData[1])
+        elif(sendData[0] == PyTactio.SerialActions.HEART_OFF):
+            self.processor.sendHeartOff(sendData[1])
     
     def sensorListCallback(self, sensorList):
         print(sensorList)
