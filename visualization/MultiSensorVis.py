@@ -78,6 +78,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         flashLED = QtWidgets.QPushButton("Flash LEDs")
         flashLED.clicked.connect(self.flashSequenceLEDs)
+        flashLED.setMaximumWidth(100)
         cmdButtonHbox = QtWidgets.QHBoxLayout()
         cmdButtonHbox.addWidget(flashLED)
 
@@ -102,7 +103,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.vizTimer.start()
 
         #self.input_ser = serial.Serial('COM8') #Serial port for STM32
-        self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for STM32
+        #self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for STM32
+        self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for STM32
         self.input_ser.baudrate = 230400
 
         self.display_on = True

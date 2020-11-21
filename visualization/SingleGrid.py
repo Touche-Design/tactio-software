@@ -94,10 +94,14 @@ class SensorGrid(QtWidgets.QWidget):
     def setData(self, data, show = True):
         self.data = data
         if(show):
-            self.setColors(self.data2color(data))
+            #self.setColors(self.data2color(data))
+            for i in range(len(self.gridWidgets[0])): 
+                for j in range(len(self.gridWidgets)):
+                    self.gridWidgets[i][j].setValue(data[i][j])
+                    self.setGridColor(self.gridWidgets[i][j], self.data2color(data[i][j]))
 
     def data2color(self,data): # Here we can add some sort of scaling (linear or logarithmic)
-        return data*3
+        return 0.05*(data**2)
 
     def setColors(self, colors):
         for i in range(len(self.gridWidgets[0])): 
