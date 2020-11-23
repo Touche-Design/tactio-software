@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <data>
     <sensor>
-        <id>17</id>
+        <id>13</id>
         <x_pos>100</x_pos>
-        <y_pos>50</y_pos>
-        <size>200</size>
+        <y_pos>0</y_pos>
+        <size>180</size>
     </sensor>
 
     <sensor>
-        <id>20</id>
-        <x_pos>400</x_pos>
-        <y_pos>50</y_pos>
+        <id>3</id>
+        <x_pos>300</x_pos>
+        <y_pos>0</y_pos>
         <size>180</size>
     </sensor>
     <!--

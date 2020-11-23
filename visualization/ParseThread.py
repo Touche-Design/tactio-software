@@ -5,44 +5,35 @@ import traceback
 import sys
 from PyTactio import SerialProcessor, SerialStatus
 
+'''
+Defines the signals available from a running worker thread.
+
+Supported signals are:
+
+finished - No data
+
+error - `tuple` (exctype, value, traceback.format_exc() )
+
+gridData - tuple of numpy grid and sensor ID
+
+sensorList - list of all available sensors
+
+'''
 class WorkerSignals(QtCore.QObject):
-    '''
-    Defines the signals available from a running worker thread.
-
-    Supported signals are:
-
-    finished
-        No data
-    
-    error
-        `tuple` (exctype, value, traceback.format_exc() )
-    
-    gridData
-        tuple of numpy grid and sensor ID
-
-    sensorList
-        list of all available sensors
-
-    '''
     finished = QtCore.pyqtSignal()
     error = QtCore.pyqtSignal(tuple)
     gridData = QtCore.pyqtSignal(tuple)
     sensorList = QtCore.pyqtSignal(list)
 
 
+'''
+Parser thread
+
+Inherits from QRunnable to handler worker thread setup, signals and wrap-up.
+Calls the parsing function from PyTactio and uses the result to trigger
+callbacks in the main thread
+'''
 class Parser(QtCore.QRunnable):
-    '''
-    Worker thread
-
-    Inherits from QRunnable to handler worker thread setup, signals and wrap-up.
-
-    :param callback: The function callback to run on this worker thread. Supplied args and 
-                     kwargs will be passed through to the runner.
-    :type callback: function
-    :param args: Arguments to pass to the callback function
-    :param kwargs: Keywords to pass to the callback function
-
-    '''
 
     def __init__(self, inputProcessor):
         super(Parser, self).__init__()
@@ -53,17 +44,14 @@ class Parser(QtCore.QRunnable):
 
     @QtCore.pyqtSlot()
     def run(self):
-        '''
-        Initialise the runner function with passed args, kwargs.
-        '''
-        while self.alive:
+        while self.alive: # This is set to false by the main window, which causes this thread to close safely
             try:
-                result, msg = self.parser.parseSerial()
+                result, msg = self.parser.parseSerial() # Runs the parser method
             except:
-                traceback.print_exc()
+                traceback.print_exc() # Emits a failure signal
                 exctype, value = sys.exc_info()[:2]
             else:
-                if(msg == SerialStatus.DATA) :
-                    self.signals.gridData.emit(result)  # Return the result of the processing
-                elif(msg == SerialStatus.NET_ADDRS):
+                if(msg == SerialStatus.DATA) : # Emits the grid data signal
+                    self.signals.gridData.emit(result)
+                elif(msg == SerialStatus.NET_ADDRS): # Emits the list of addresses signal
                     self.signals.sensorList.emit(result)
