@@ -6,19 +6,11 @@
         <y_pos>0</y_pos>
         <size>180</size>
     </sensor>
-
     <sensor>
         <id>3</id>
         <x_pos>300</x_pos>
         <y_pos>0</y_pos>
         <size>180</size>
     </sensor>
-    <!--
-    <sensor>
-        <id>23</id>
-        <x_pos>100</x_pos>
-        <y_pos>400</y_pos>
-    </sensor>
-    -->
 </data>
 
