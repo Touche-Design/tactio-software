@@ -32,7 +32,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         '''
         Reads in XML data for parameters of model
         '''
-        model_params = et.parse('model.xml').getroot()
+        self.model_params = et.parse('model.xml').getroot()
 
 
         #Blank widget to act as parent for all sensor widgets
@@ -209,7 +209,9 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
     def calModel(self, voltage):
         # Formula goes here
-        return voltage
+        m = self.model_params.find('slope')
+        b = self.model_params.find('offset')
+        return m*voltage + b
 
     # Updates sensor data when callback is triggered
     def parseResultCallback(self, parseResult):
