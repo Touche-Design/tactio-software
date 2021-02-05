@@ -91,13 +91,15 @@ class SerialProcessor:
                 elif(byte&0xF0 == 0b01000000):
                     valid = byte&0x0F
                     addr = int.from_bytes(self.input_ser.read(), byteorder='big')
+                    quad = addr & 3
+                    addr = (addr & 0x11111100) >> 2
                     data = np.zeros((4,4))
                     # For each column
                     for i in range(4):
                         # For each row
                         for j in range(4):
                             data[j,i] = int.from_bytes(self.input_ser.read() + self.input_ser.read(), byteorder='big') & 0xFFF
-                    return (addr, data), SerialStatus.DATA
+                    return (addr, quad, data), SerialStatus.DATA
                 else:
                     # In case neither applies here
                     return (byte), SerialStatus.ERROR
