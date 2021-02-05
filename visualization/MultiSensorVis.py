@@ -29,6 +29,12 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.sensorCount = len(position_data)
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
 
+        '''
+        Reads in XML data for parameters of model
+        '''
+        model_params = et.parse('model.xml').getroot()
+
+
         #Blank widget to act as parent for all sensor widgets
         sensorAreaWidget = QtGui.QWidget()
 
@@ -121,6 +127,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.worker.signals.gridData.connect(self.parseResultCallback) # Signal triggers callback to redraw sensor
         self.worker.signals.sensorList.connect(self.sensorListCallback) # Signal triggers callback to print data
         self.threadpool.start(self.worker) 
+        
+        self.calibrationOn=False # False = Raw value, True = Calibrated value
 
         # Top menu bar
         menuBar = self.menuBar()
@@ -133,6 +141,13 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         heartEnable = toolsMenu.addAction("Enable Heartbeat")
         heartEnable.triggered.connect(self.enableAllHeartbeat) # Enables heartbeat on sensors
+
+        calMenu = menuBar.addMenu("Calibration")
+        calDisable = toolsMenu.addAction("Show Calibrated")
+        calDisable.triggered.connect(self.enableCal) # Disables calibration on display
+
+        calEnable = toolsMenu.addAction("Show Raw")
+        calEnable.triggered.connect(self.disableCal) # Enables heartbeat on sensors
 
 
     '''
@@ -164,6 +179,11 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             self.processor.sendHeartOn(i)
             time.sleep(0.01)
 
+    def enableCal(self):
+        self.calibrationOn = True
+
+    def disableCal(self):
+        self.calibrationOn = False
     '''
     Sends corresponding command using PyTactio based on message passed from ParseThread
     Separates PyTactio from QT code
@@ -187,9 +207,13 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def sensorListCallback(self, sensorList):
         print(sensorList)
 
+    def calModel(self, voltage):
+        # Formula goes here
+        return voltage
+
     # Updates sensor data when callback is triggered
     def parseResultCallback(self, parseResult):
-        self.sensorWidgets[self.sensorIDs.index(parseResult[0])].setData(parseResult[1])
+        self.sensorWidgets[self.sensorIDs.index(parseResult[0])].setData(calModel(parseResult[1]))
 
     # Updates selected file for recording
     def fileSelCallback(self):
