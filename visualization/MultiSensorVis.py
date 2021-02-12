@@ -25,7 +25,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         '''
         Reads in XML data to define sensor locations
         '''
-        position_data = et.parse('configs/2sensor.xml').getroot()
+        position_data = et.parse('configs/1sensor.xml').getroot()
         self.sensorCount = len(position_data)
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
 
@@ -112,9 +112,9 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.vizTimer.timeout.connect(self.timerCallback)
         self.vizTimer.start()
 
-        self.input_ser = serial.Serial('COM8') #Serial port for MBED Windows
+        #self.input_ser = serial.Serial('COM8') #Serial port for MBED Windows
         #self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for MBED MacOS
-        #self.input_ser = serial.serial_for_url('/dev/ttyACM0') #Serial port for MBED Linux
+        self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for MBED Linux
         self.input_ser.baudrate = 230400
         self.show()
 
@@ -143,10 +143,10 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         heartEnable.triggered.connect(self.enableAllHeartbeat) # Enables heartbeat on sensors
 
         calMenu = menuBar.addMenu("Calibration")
-        calDisable = toolsMenu.addAction("Show Calibrated")
+        calDisable = calMenu.addAction("Show Calibrated")
         calDisable.triggered.connect(self.enableCal) # Disables calibration on display
 
-        calEnable = toolsMenu.addAction("Show Raw")
+        calEnable = calMenu.addAction("Show Raw")
         calEnable.triggered.connect(self.disableCal) # Enables heartbeat on sensors
 
 
@@ -208,14 +208,17 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         print(sensorList)
 
     def calModel(self, voltage):
-        # Formula goes here
-        m = self.model_params.find('slope')
-        b = self.model_params.find('offset')
-        return m*voltage + b
+        if(self.calibrationOn):
+            # Formula goes here
+            m = float(self.model_params.find('slope').text)
+            b = float(self.model_params.find('offset').text)
+            return m*voltage + b
+        else:
+            return voltage
 
     # Updates sensor data when callback is triggered
     def parseResultCallback(self, parseResult):
-        self.sensorWidgets[self.sensorIDs.index(parseResult[0])].setData(calModel(parseResult[1]))
+        self.sensorWidgets[self.sensorIDs.index(parseResult[0])].setData(self.calModel(parseResult[1]))
 
     # Updates selected file for recording
     def fileSelCallback(self):
