@@ -33,6 +33,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         Reads in XML data for parameters of model
         '''
         self.model_params = et.parse('model.xml').getroot()
+        self.model_ids = [int(self.model_params[i].find('id').text) for i in range(len(self.model_params))]
 
 
         #Blank widget to act as parent for all sensor widgets
@@ -207,18 +208,21 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def sensorListCallback(self, sensorList):
         print(sensorList)
 
-    def calModel(self, voltage):
+    def calModel(self, voltage, sensorID):
         if(self.calibrationOn):
             # Formula goes here
-            m = float(self.model_params.find('slope').text)
-            b = float(self.model_params.find('offset').text)
+            model = self.model_params[self.model_ids.index(sensorID)]
+            m = float(model.find('slope').text)
+            b = float(model.find('offset').text)
             return m*voltage + b
         else:
             return voltage
 
     # Updates sensor data when callback is triggered
     def parseResultCallback(self, parseResult):
-        self.sensorWidgets[self.sensorIDs.index(parseResult[0])].setData(self.calModel(parseResult[1]))
+        sensorID = parseResult[0]
+        voltage = parseResult[1]
+        self.sensorWidgets[self.sensorIDs.index(sensorID)].setData(self.calModel(voltage, sensorID))
 
     # Updates selected file for recording
     def fileSelCallback(self):

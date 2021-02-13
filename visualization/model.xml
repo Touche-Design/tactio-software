@@ -1,6 +1,14 @@
 <?xml version="1.0"?>
 <data>
-<slope>1</slope>
-<offset>100</offset>
+<sensor>
+    <id>8</id>
+    <slope>1</slope>
+    <offset>100</offset>
+</sensor>
+<sensor>
+    <id>7</id>
+    <slope>1</slope>
+    <offset>200</offset>
+</sensor>
 </data>
 
