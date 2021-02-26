@@ -1,14 +1,42 @@
 <?xml version="1.0"?>
 <data>
 <sensor>
-    <id>8</id>
-    <slope>1</slope>
-    <offset>100</offset>
+    <id>5</id>
+    <slope>0.45592984822529414</slope>
+    <!--
+    <offset>-6.880490316019142e-05</offset>
+    -->
+    <offset>-3.6621806343422236e-05</offset>
+</sensor>
+<sensor>
+    <id>11</id>
+    <slope>1.5594623146951252</slope>
+    <offset>0</offset>
+</sensor>
+<sensor>
+    <id>18</id>
+    <slope>1.7367651374905906</slope>
+    <offset>0</offset>
+</sensor>
+<sensor>
+    <id>6</id>
+    <slope>0.9737778977177856</slope>
+    <offset>0</offset>
 </sensor>
 <sensor>
     <id>7</id>
-    <slope>1</slope>
-    <offset>200</offset>
+    <slope>0.9573885518919676</slope>
+    <offset>0</offset>
+</sensor>
+<sensor>
+    <id>8</id>
+    <slope>1.1899197748220298</slope>
+    <offset>0</offset>
+</sensor>
+<sensor>
+    <id>9</id>
+    <slope>1.4753149634839313</slope>
+    <offset>0</offset>
 </sensor>
 </data>
 

@@ -114,8 +114,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.vizTimer.start()
 
         #self.input_ser = serial.Serial('COM8') #Serial port for MBED Windows
-        #self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for MBED MacOS
-        self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for MBED Linux
+        self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for MBED MacOS
+        #self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for MBED Linux
         self.input_ser.baudrate = 230400
         self.show()
 
@@ -211,10 +211,13 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def calModel(self, voltage, sensorID):
         if(self.calibrationOn):
             # Formula goes here
+            input_voltage = 3300
+            r2 = 390
+            conductance = voltage/(r2*input_voltage  - r2 * voltage)
             model = self.model_params[self.model_ids.index(sensorID)]
             m = float(model.find('slope').text)
             b = float(model.find('offset').text)
-            return m*voltage + b
+            return m*conductance + b
         else:
             return voltage
 
