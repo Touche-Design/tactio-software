@@ -225,7 +225,10 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def parseResultCallback(self, parseResult):
         sensorID = parseResult[0]
         voltage = parseResult[1]
-        self.sensorWidgets[self.sensorIDs.index(sensorID)].setData(self.calModel(voltage, sensorID))
+        if(self.calibrationOn):
+            self.sensorWidgets[self.sensorIDs.index(sensorID)].setData(1000*self.calModel(voltage, sensorID))
+        else:
+            self.sensorWidgets[self.sensorIDs.index(sensorID)].setData(self.calModel(voltage, sensorID))
 
     # Updates selected file for recording
     def fileSelCallback(self):

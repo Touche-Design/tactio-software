@@ -115,14 +115,14 @@ class SensorGrid(QtWidgets.QWidget):
         if(show):
             for i in range(len(self.gridWidgets[0])): 
                 for j in range(len(self.gridWidgets)):
-                    self.gridWidgets[i][j].setValue(1000*data[i][j])
+                    self.gridWidgets[i][j].setValue(data[i][j])
                     self.setGridColor(self.gridWidgets[i][j], self.data2color(data[i][j]))
 
     '''
     Used to compute scalings for colors to make the visualis look prettier
     '''
     def data2color(self,data): # Here we can add some sort of scaling (linear or logarithmic)
-        return data*500000
+        return data*50
 
     '''
     Sets the color of a particular grid widget
