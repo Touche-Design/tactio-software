@@ -122,7 +122,7 @@ class SensorGrid(QtWidgets.QWidget):
     Used to compute scalings for colors to make the visualis look prettier
     '''
     def data2color(self,data): # Here we can add some sort of scaling (linear or logarithmic)
-        return data*50
+        return data*500
 
     '''
     Sets the color of a particular grid widget

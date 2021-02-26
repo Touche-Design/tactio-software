@@ -25,7 +25,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         '''
         Reads in XML data to define sensor locations
         '''
-        position_data = et.parse('configs/1sensor.xml').getroot()
+        position_data = et.parse('configs/6sensor.xml').getroot()
         self.sensorCount = len(position_data)
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
 

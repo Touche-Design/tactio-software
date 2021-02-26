@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<data>
+    <sensor>
+        <id>9</id>
+        <x_pos>100</x_pos>
+        <y_pos>50</y_pos>
+        <size>180</size>
+    </sensor> 
+    <sensor>
+        <id>7</id>
+        <x_pos>300</x_pos>
+        <y_pos>50</y_pos>
+        <size>180</size>
+    </sensor>
+        <sensor>
+        <id>8</id>
+        <x_pos>100</x_pos>
+        <y_pos>250</y_pos>
+        <size>180</size>
+    </sensor> 
+        <sensor>
+        <id>18</id>
+        <x_pos>300</x_pos>
+        <y_pos>250</y_pos>
+        <size>180</size>
+    </sensor>
+    <sensor>
+        <id>6</id>
+        <x_pos>100</x_pos>
+        <y_pos>450</y_pos>
+        <size>180</size>
+    </sensor> 
+    <sensor>
+        <id>5</id>
+        <x_pos>300</x_pos>
+        <y_pos>450</y_pos>
+        <size>180</size>
+    </sensor>
+
+
+
+
+
+</data>
+
