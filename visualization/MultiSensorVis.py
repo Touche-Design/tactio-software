@@ -217,7 +217,9 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             model = self.model_params[self.model_ids.index(sensorID)]
             m = float(model.find('slope').text)
             b = float(model.find('offset').text)
-            return m*conductance + b
+            out = m*conductance + b
+            out[np.where(out < 0)] = 0
+            return out
         else:
             return voltage
 
@@ -276,8 +278,12 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def timerCallback(self): 
         if self.is_recording:
             for id in self.sensorIDs:
-                self.recording[id] = np.append(self.recording[id], \
-                    np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
+                if(self.calibrationOn):
+                    self.recording[id] = np.append(self.recording[id], \
+                        np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data/1000,axis=0),axis=0)
+                else:
+                    self.recording[id] = np.append(self.recording[id], \
+                        np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
 
     # Add Keyboard Shortcuts
     def keyPressEvent(self, event):
