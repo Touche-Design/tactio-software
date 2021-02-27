@@ -7,6 +7,7 @@ import serial
 import json
 import time
 import PyTactio
+import json
 
 from NumpyArrayEncoder import NumpyArrayEncoder
 import SingleGrid
@@ -31,10 +32,30 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         '''
         Reads in XML data for parameters of model
-        '''
         self.model_params = et.parse('model.xml').getroot()
         self.model_ids = [int(self.model_params[i].find('id').text) for i in range(len(self.model_params))]
-
+        '''
+        
+        '''
+        Reads in JSON data for parameters of model
+        '''
+        regFile = open('./regression_params.json', 'r')
+        model_data = json.load(regFile)
+        self.model_slope = {}
+        self.model_offset = {}
+        for key in model_data:
+            splitName = key.split('_')
+            node = splitName[0][4:]
+            idx1 = splitName[1]
+            idx2 = splitName[2]
+            if node in self.model_slope.keys():
+                self.model_slope[node][int(idx1), int(idx2)] = model_data[key][0]
+                self.model_offset[node][int(idx1), int(idx2)] = model_data[key][1]
+            else:
+                self.model_slope[node] = np.zeros((4,4))
+                self.model_offset[node] = np.zeros((4,4))
+                self.model_slope[node][int(idx1), int(idx2)] = model_data[key][0]
+                self.model_offset[node][int(idx1), int(idx2)] = model_data[key][1]
 
         #Blank widget to act as parent for all sensor widgets
         sensorAreaWidget = QtGui.QWidget()
@@ -114,8 +135,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.vizTimer.start()
 
         #self.input_ser = serial.Serial('COM8') #Serial port for MBED Windows
-        self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for MBED MacOS
-        #self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for MBED Linux
+        #self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for MBED MacOS
+        self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for MBED Linux
         self.input_ser.baudrate = 230400
         self.show()
 
@@ -214,10 +235,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             input_voltage = 3300
             r2 = 390
             conductance = voltage/(r2*input_voltage  - r2 * voltage)
-            model = self.model_params[self.model_ids.index(sensorID)]
-            m = float(model.find('slope').text)
-            b = float(model.find('offset').text)
-            out = m*conductance + b
+            out = self.model_slope[str(sensorID)]*conductance + self.model_offset[str(sensorID)]
             out[np.where(out < 0)] = 0
             return out
         else:
