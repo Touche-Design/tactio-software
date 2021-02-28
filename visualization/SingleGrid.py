@@ -35,7 +35,7 @@ class GridPoint(QtWidgets.QWidget):
     Sets numerical of label
     '''
     def setValue(self, num):
-        self.value.setText(str(int(num)))
+        self.value.setText("{:.2f}".format(float(num)))
 
     '''
     Dynamic font changing based on widget size
@@ -122,7 +122,7 @@ class SensorGrid(QtWidgets.QWidget):
     Used to compute scalings for colors to make the visualis look prettier
     '''
     def data2color(self,data): # Here we can add some sort of scaling (linear or logarithmic)
-        return 0.05*(data**2)
+        return data*500
 
     '''
     Sets the color of a particular grid widget

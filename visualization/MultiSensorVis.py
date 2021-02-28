@@ -7,6 +7,7 @@ import serial
 import json
 import time
 import PyTactio
+import json
 
 from NumpyArrayEncoder import NumpyArrayEncoder
 import SingleGrid
@@ -25,9 +26,36 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         '''
         Reads in XML data to define sensor locations
         '''
-        position_data = et.parse('configs/2sensor.xml').getroot()
+        position_data = et.parse('configs/6sensor.xml').getroot()
         self.sensorCount = len(position_data)
         self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
+
+        '''
+        Reads in XML data for parameters of model
+        self.model_params = et.parse('model.xml').getroot()
+        self.model_ids = [int(self.model_params[i].find('id').text) for i in range(len(self.model_params))]
+        '''
+        
+        '''
+        Reads in JSON data for parameters of model
+        '''
+        regFile = open('./regression_params.json', 'r')
+        model_data = json.load(regFile)
+        self.model_slope = {}
+        self.model_offset = {}
+        for key in model_data:
+            splitName = key.split('_')
+            node = splitName[0][4:]
+            idx1 = splitName[1]
+            idx2 = splitName[2]
+            if node in self.model_slope.keys():
+                self.model_slope[node][int(idx1), int(idx2)] = model_data[key][0]
+                self.model_offset[node][int(idx1), int(idx2)] = model_data[key][1]
+            else:
+                self.model_slope[node] = np.zeros((4,4))
+                self.model_offset[node] = np.zeros((4,4))
+                self.model_slope[node][int(idx1), int(idx2)] = model_data[key][0]
+                self.model_offset[node][int(idx1), int(idx2)] = model_data[key][1]
 
         #Blank widget to act as parent for all sensor widgets
         sensorAreaWidget = QtGui.QWidget()
@@ -106,9 +134,9 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.vizTimer.timeout.connect(self.timerCallback)
         self.vizTimer.start()
 
-        self.input_ser = serial.Serial('COM8') #Serial port for MBED Windows
+        #self.input_ser = serial.Serial('COM8') #Serial port for MBED Windows
         #self.input_ser = serial.Serial('/dev/tty.usbmodem14202') #Serial port for MBED MacOS
-        #self.input_ser = serial.serial_for_url('/dev/ttyACM0') #Serial port for MBED Linux
+        self.input_ser = serial.Serial('/dev/ttyACM0') #Serial port for MBED Linux
         self.input_ser.baudrate = 230400
         self.show()
 
@@ -121,6 +149,8 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.worker.signals.gridData.connect(self.parseResultCallback) # Signal triggers callback to redraw sensor
         self.worker.signals.sensorList.connect(self.sensorListCallback) # Signal triggers callback to print data
         self.threadpool.start(self.worker) 
+        
+        self.calibrationOn=False # False = Raw value, True = Calibrated value
 
         # Top menu bar
         menuBar = self.menuBar()
@@ -133,6 +163,13 @@ class MultiSensorVis(QtWidgets.QMainWindow):
 
         heartEnable = toolsMenu.addAction("Enable Heartbeat")
         heartEnable.triggered.connect(self.enableAllHeartbeat) # Enables heartbeat on sensors
+
+        calMenu = menuBar.addMenu("Calibration")
+        calDisable = calMenu.addAction("Show Calibrated")
+        calDisable.triggered.connect(self.enableCal) # Disables calibration on display
+
+        calEnable = calMenu.addAction("Show Raw")
+        calEnable.triggered.connect(self.disableCal) # Enables heartbeat on sensors
 
 
     '''
@@ -164,6 +201,11 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             self.processor.sendHeartOn(i)
             time.sleep(0.01)
 
+    def enableCal(self):
+        self.calibrationOn = True
+
+    def disableCal(self):
+        self.calibrationOn = False
     '''
     Sends corresponding command using PyTactio based on message passed from ParseThread
     Separates PyTactio from QT code
@@ -187,9 +229,26 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def sensorListCallback(self, sensorList):
         print(sensorList)
 
+    def calModel(self, voltage, sensorID):
+        if(self.calibrationOn):
+            # Formula goes here
+            input_voltage = 3300
+            r2 = 390
+            conductance = voltage/(r2*input_voltage  - r2 * voltage)
+            out = self.model_slope[str(sensorID)]*conductance + self.model_offset[str(sensorID)]
+            out[np.where(out < 0)] = 0
+            return out
+        else:
+            return voltage
+
     # Updates sensor data when callback is triggered
     def parseResultCallback(self, parseResult):
-        self.sensorWidgets[self.sensorIDs.index(parseResult[0])].setData(parseResult[1])
+        sensorID = parseResult[0]
+        voltage = parseResult[1]
+        if(self.calibrationOn):
+            self.sensorWidgets[self.sensorIDs.index(sensorID)].setData(1000*self.calModel(voltage, sensorID))
+        else:
+            self.sensorWidgets[self.sensorIDs.index(sensorID)].setData(self.calModel(voltage, sensorID))
 
     # Updates selected file for recording
     def fileSelCallback(self):
@@ -237,8 +296,12 @@ class MultiSensorVis(QtWidgets.QMainWindow):
     def timerCallback(self): 
         if self.is_recording:
             for id in self.sensorIDs:
-                self.recording[id] = np.append(self.recording[id], \
-                    np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
+                if(self.calibrationOn):
+                    self.recording[id] = np.append(self.recording[id], \
+                        np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data/1000,axis=0),axis=0)
+                else:
+                    self.recording[id] = np.append(self.recording[id], \
+                        np.expand_dims(self.sensorWidgets[self.sensorIDs.index(id)].data,axis=0),axis=0)
 
     # Add Keyboard Shortcuts
     def keyPressEvent(self, event):

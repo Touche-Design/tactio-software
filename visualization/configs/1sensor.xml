@@ -1,15 +1,9 @@
 <?xml version="1.0"?>
 <data>
     <sensor>
-        <id>9</id>
+        <id>5</id>
         <x_pos>400</x_pos>
         <y_pos>100</y_pos>
-        <size>280</size>
-    </sensor>
-    <sensor>
-        <id>16</id>
-        <x_pos>400</x_pos>
-        <y_pos>500</y_pos>
         <size>280</size>
     </sensor>
 </data>
