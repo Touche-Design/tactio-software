@@ -70,6 +70,7 @@ class SensorGrid(QtWidgets.QWidget):
 
         # numerical data associated with each measurement
         self.data = np.zeros((4,4))
+        self.initData = np.zeros((4,4))
         self.id = 0 # Sensor ID
 
         # Arrange rows using HBoxLayouts
@@ -111,7 +112,7 @@ class SensorGrid(QtWidgets.QWidget):
     Sets data and color of grid
     '''
     def setData(self, data, show = True):
-        self.data = data
+        self.data = data - self.initData
         if(show):
             for i in range(len(self.gridWidgets[0])): 
                 for j in range(len(self.gridWidgets)):
@@ -162,9 +163,11 @@ class SensorGrid(QtWidgets.QWidget):
         elif(action == calibrateBias):
             self.sendData.emit((SerialActions.CAL_BIAS, self.id))
         elif(action == turnBiasCalOn):
-            self.sendData.emit((SerialActions.BIAS_EN, self.id))
+            #self.sendData.emit((SerialActions.BIAS_EN, self.id))
+            self.initData = self.data
         elif(action == turnBiasCalOff):
-            self.sendData.emit((SerialActions.BIAS_DIS, self.id))
+            #self.sendData.emit((SerialActions.BIAS_DIS, self.id))
+            self.initData = np.zeros((4,4))
         elif(action == onHeartAct):
             self.sendData.emit((SerialActions.HEART_ON, self.id))
         elif(action == offHeartAct):
