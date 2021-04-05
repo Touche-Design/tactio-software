@@ -3,6 +3,11 @@ import numpy as np
 from PyTactio import SerialProcessor
 import time
 
+'''
+Simple scripted example to interact with the Tactio sensor chain
+without needing a dependency on QT
+'''
+
 if __name__ == '__main__':
     spy = False
     with serial.serial_for_url('spy:///dev/cu.usbmodem1422' if spy else '/dev/cu.usbmodem1422') as ser:

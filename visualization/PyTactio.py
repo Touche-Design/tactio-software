@@ -1,6 +1,11 @@
 import numpy as np
 from enum import Enum, auto
 
+'''
+Contains a set of enums representing possible actions over
+the serial port. These can be used to pass messages between
+PyTactio and other processes
+'''
 class SerialActions(Enum):
     LEDON = auto()
     LEDOFF = auto()
@@ -10,6 +15,9 @@ class SerialActions(Enum):
     HEART_ON = auto()
     HEART_OFF = auto()
 
+'''
+Contains a set of error codes
+'''
 class SerialStatus(Enum):
     PORT_EMPTY = -2
     PORT_CLOSED = -1
@@ -17,30 +25,45 @@ class SerialStatus(Enum):
     DATA = 0
     ERROR = -1
 
-
-
+'''
+This class wraps a serial port. Function calls send the appropriate
+codes over the serial port to the Tactio sensor chain
+'''
 class SerialProcessor:
     def __init__(self, port):
         self.input_ser = port
+        # Internal variables hold the states of the calibrations
         self.biasCal = False
         self.slopeCal = False
         self.interCal = False
-    
+
+    '''
+    Commands sensor at id to turn on the LED
+    '''
     def sendLEDon(self, id):
         self.input_ser.write(int.to_bytes(0b10000011, 1, byteorder='big'))
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big'))
         self.input_ser.flush()
 
+    '''
+    Commands sensor at id to turn off the LED
+    '''
     def sendLEDoff(self, id):
         self.input_ser.write(int.to_bytes(0b10000010, 1, byteorder='big'))
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big'))
         self.input_ser.flush()
-    
+
+    '''
+    Commands sensor at id to calibrate itself
+    '''
     def sendCalCmd(self, id):
         self.input_ser.write(int.to_bytes(0b10001000, 1, byteorder='big'))
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
         self.input_ser.flush()
 
+    '''
+    Enables pre-stored bias calibration on sensor at id
+    '''
     def sendBiasCalEn(self, id):
         self.biasCal = True
         self.input_ser.write(int.to_bytes(0b10001110, 1, byteorder='big'))
@@ -49,6 +72,9 @@ class SerialProcessor:
         self.input_ser.write(int.to_bytes(biasCalCmd, 1, byteorder='big'))
         self.input_ser.flush()
 
+    '''
+    Disables pre-stored bias calibration on sensor at id
+    '''
     def sendBiasCalDis(self, id):
         self.biasCal = False
         self.input_ser.write(int.to_bytes(0b10001110, 1, byteorder='big'))
@@ -57,17 +83,29 @@ class SerialProcessor:
         self.input_ser.write(int.to_bytes(biasCalCmd, 1, byteorder='big'))
         self.input_ser.flush()
     
+    '''
+    Enables heartbeat indicator on sensor at id
+    '''
     def sendHeartOn(self, id):
         self.input_ser.write(int.to_bytes(0b10010001, 1, byteorder='big'))
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
         self.input_ser.flush()
 
+    '''
+    Disables heartbeat indicator on sensor at id
+    '''
     def sendHeartOff(self, id):
         self.input_ser.write(int.to_bytes(0b10010000, 1, byteorder='big'))
         self.input_ser.write(int.to_bytes(id, 1, byteorder='big')) 
         self.input_ser.flush()
 
-    def parseSerial(self): # Parses the input from serial port and converts to array
+    '''
+    Parses the input from serial port and returns as tuple of the format
+    (DATA, STATUS)
+    Data could be the addresses from the "get all addresses" message or the 
+    sensor data sent by the Tactio chain
+    '''
+    def parseSerial(self): 
         if not self.input_ser.inWaiting():
             return (), SerialStatus.PORT_EMPTY
         else:
