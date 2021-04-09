@@ -24,19 +24,6 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         self.setWindowTitle("Tactio")
 
         '''
-        Reads in XML data to define sensor locations
-        '''
-        position_data = et.parse('configs/6sensor.xml').getroot()
-        self.sensorCount = len(position_data)
-        self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
-
-        '''
-        Reads in XML data for parameters of model
-        self.model_params = et.parse('model.xml').getroot()
-        self.model_ids = [int(self.model_params[i].find('id').text) for i in range(len(self.model_params))]
-        '''
-        
-        '''
         Reads in JSON data for parameters of model
         '''
         regFile = open('./regression_params.json', 'r')
@@ -58,9 +45,16 @@ class MultiSensorVis(QtWidgets.QMainWindow):
                 self.model_offset[node][int(idx1), int(idx2)] = model_data[key][1]
 
         #Blank widget to act as parent for all sensor widgets
-        sensorAreaWidget = QtGui.QWidget()
+        sensorAreaWidget = QtWidgets.QWidget()
 
-        self.sensorWidgets = [SingleGrid.SensorGrid() for i in range(self.sensorCount)]
+
+        # Reads in XML data to define sensor locations
+        position_data = et.parse('configs/1sensor.xml').getroot()
+        self.sensorCount = len(position_data)
+        self.sensorIDs = [int(position_data[i].find('id').text) for i in range(self.sensorCount)]
+
+
+        self.sensorWidgets = [SingleGrid.SensorQuad() for i in range(self.sensorCount)]
 
         # Sets parameters of screen based on XML document
         sensorXpos = []
@@ -68,7 +62,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         sizes = []
         for i in range(self.sensorCount):
             self.sensorWidgets[i].setId(self.sensorIDs[i])
-            self.sensorWidgets[i].sendData.connect(self.sendMessageCallback)
+            # self.sensorWidgets[i].sendData.connect(self.sendMessageCallback) # TODO: Add Back
             self.sensorWidgets[i].setParent(sensorAreaWidget)
             sensorx = int(position_data[i].find('x_pos').text)
             sensorXpos.append(sensorx)
@@ -90,7 +84,7 @@ class MultiSensorVis(QtWidgets.QMainWindow):
         sensorAreaWidget.setMinimumSize(maxsizeX, maxsizeY)
 
         #adding buttons for recording and saving
-        self.rec_btn = QtGui.QPushButton("Rec", self)
+        self.rec_btn = QtWidgets.QPushButton("Rec", self)
         self.rec_btn.setStyleSheet("min-height: 50px;"
                                    "max-height: 50px;"
                                    "min-width: 50px;"
@@ -237,18 +231,16 @@ class MultiSensorVis(QtWidgets.QMainWindow):
             conductance = voltage/(r2*input_voltage  - r2 * voltage)
             out = self.model_slope[str(sensorID)]*conductance + self.model_offset[str(sensorID)]
             out[np.where(out < 0)] = 0
-            return out
+            return out*1000
         else:
             return voltage
 
     # Updates sensor data when callback is triggered
     def parseResultCallback(self, parseResult):
         sensorID = parseResult[0]
-        voltage = parseResult[1]
-        if(self.calibrationOn):
-            self.sensorWidgets[self.sensorIDs.index(sensorID)].setData(1000*self.calModel(voltage, sensorID))
-        else:
-            self.sensorWidgets[self.sensorIDs.index(sensorID)].setData(self.calModel(voltage, sensorID))
+        quadrant = parseResult[1]
+        voltage = parseResult[2]
+        self.sensorWidgets[self.sensorIDs.index(sensorID)].setData(quadrant, self.calModel(voltage, sensorID))
 
     # Updates selected file for recording
     def fileSelCallback(self):

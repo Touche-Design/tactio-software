@@ -106,7 +106,7 @@ class SerialProcessor:
     sensor data sent by the Tactio chain
     '''
     def parseSerial(self): 
-        if not self.input_ser.inWaiting():
+        if not self.input_ser.in_waiting > 0:
             return (), SerialStatus.PORT_EMPTY
         else:
             if(not self.input_ser.isOpen()): # Skip and return zeros if there is nothing plugged in

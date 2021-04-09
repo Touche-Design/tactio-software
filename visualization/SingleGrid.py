@@ -1,5 +1,4 @@
 from PyQt5 import QtWidgets, QtCore, Qt, QtGui
-from pyqtgraph import PlotWidget, plot
 import random
 import sys  # We need sys so that we can pass argv to QApplication
 import os
@@ -16,8 +15,7 @@ class GridPoint(QtWidgets.QWidget):
         self.setAutoFillBackground(True)
         self.value = QtWidgets.QLabel()
         # Ignoring size policy to enforce squareness on text box in grid point
-        self.value.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Ignored,
-                                             QtGui.QSizePolicy.Ignored))
+        #self.value.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Ignored)) # TODO: Uncomment
         self.value.setParent(self)
         self.value.setStyleSheet('QLabel {color: #FFFFFF;}')
         self.value.setAlignment(QtCore.Qt.AlignCenter)
@@ -77,9 +75,9 @@ class SensorGrid(QtWidgets.QWidget):
 
         # And a single VBoxLayout arranges all the rows into a grid
         vbox = QtWidgets.QVBoxLayout()
-        self.id_box = QtWidgets.QLabel("Sensor {}".format(self.id))
-        self.id_box.setAlignment(QtCore.Qt.AlignCenter)
-        vbox.addWidget(self.id_box)
+        #self.id_box = QtWidgets.QLabel("Sensor {}".format(self.id))
+        #self.id_box.setAlignment(QtCore.Qt.AlignCenter)
+        #vbox.addWidget(self.id_box)
 
         # Loop through all widgets and add them to layouts accordingly
         for i in range(len(hboxes)):
@@ -90,14 +88,15 @@ class SensorGrid(QtWidgets.QWidget):
 
         vbox.setSpacing(0)
         self.setLayout(vbox)
-        self.setMinimumSize(200,200) # Minimum size based on default font size
+
+        #self.setMinimumSize(200,200) # Minimum size based on default font size
 
     '''
     Sets ID and text
     '''
     def setId(self, id):
         self.id = id
-        self.id_box.setText("Sensor {}".format(self.id))
+        #self.id_box.setText("Sensor {}".format(self.id))
 
     '''
     Maintains squareness of widget
@@ -169,3 +168,38 @@ class SensorGrid(QtWidgets.QWidget):
             self.sendData.emit((SerialActions.HEART_ON, self.id))
         elif(action == offHeartAct):
             self.sendData.emit((SerialActions.HEART_OFF, self.id))
+
+# This class contains 4 SensorGrids to make an 8x8 grid
+class SensorQuad(QtWidgets.QWidget):
+    def __init__(self,  *args, **kwargs):
+        super(QtWidgets.QWidget, self).__init__(*args, **kwargs)
+        self.id = 0
+        self.sensors = [SensorGrid(), SensorGrid(), SensorGrid(), SensorGrid()]
+        # Arrange rows using HBoxLayouts
+        hboxes = [QtWidgets.QHBoxLayout(), QtWidgets.QHBoxLayout()]
+
+        # And a single VBoxLayout arranges all the rows into a grid
+        vbox = QtWidgets.QVBoxLayout()
+        hboxes[0].addWidget(self.sensors[1])
+        hboxes[0].addWidget(self.sensors[0])
+        hboxes[0].setSpacing(0)
+
+        hboxes[1].addWidget(self.sensors[2])
+        hboxes[1].addWidget(self.sensors[3])
+        hboxes[1].setSpacing(0)
+
+        vbox.addItem(hboxes[0])
+        vbox.addItem(hboxes[1])
+        vbox.addStretch(1)
+        vbox.setSpacing(0)
+        self.setLayout(vbox)
+
+    def setData(self, quad, data):
+        self.sensors[quad].setData(data)
+
+    def resizeEvent(self, e):
+        for i in range(len(self.sensors)):
+            self.sensors[i].setFixedSize(self.width() / 2, self.height() / 2)
+
+    def setId(self, id):
+        self.id = id
