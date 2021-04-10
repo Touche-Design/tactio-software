@@ -130,7 +130,7 @@ class SerialProcessor:
                     valid = byte&0x0F
                     addr = int.from_bytes(self.input_ser.read(), byteorder='big')
                     quad = addr & 3
-                    addr = (addr & 0x11111100) >> 2
+                    addr = (addr & 0b11111100) >> 2
                     data = np.zeros((4,4))
                     # For each column
                     for i in range(4):
